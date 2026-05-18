@@ -2,4 +2,6 @@
 .cache/
 compile_commands.json
 Makefile
+build/
+plazza
 CLAUDE.md
