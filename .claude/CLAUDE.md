@@ -1,4 +1,4 @@
-# Project Rules — Raytracer
+# Project Rules — Plazza
 
 Ce fichier définit les règles de codage et d'architecture du projet. Il est
 chargé automatiquement par Claude Code à chaque session sur ce repo et doit
