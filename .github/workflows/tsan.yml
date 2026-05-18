@@ -1,0 +1,31 @@
+name: TSan
+
+on:
+  workflow_dispatch: {}
+  pull_request: {}
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  tsan:
+    name: thread-sanitizer
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure with TSan
+        env:
+          CC: clang
+          CXX: clang++
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DENABLE_TSAN=ON
+
+      - name: Build
+        run: cmake --build build --parallel
+
+      - name: Run binary under TSan
+        env:
+          TSAN_OPTIONS: halt_on_error=1
+        run: ./plazza
