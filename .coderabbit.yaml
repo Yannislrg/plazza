@@ -1,0 +1,40 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: "fr-FR"
+reviews:
+  profile: "assertive"
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  finishing_touches:
+    docstrings:
+      enabled: false
+  path_filters:
+    - "!**/node_modules/**"
+    - "!**/.github/**"
+    - "!**/.vscode/**"
+    - "!**/images/**"
+    - "!**/*.svg"
+    - "!**/*.png"
+  path_instructions:
+    - path: "**/*.cpp"
+      instructions: |
+        Le sujet complet du projet est disponible dans `doc/subject.md`. Lis-le avant chaque review.
+        À chaque PR, vérifie que le code est bien en accord avec les exigences du sujet : architecture, encapsulations obligatoires, contraintes des cuisines, gestion des pizzas, IPC, réception interactive.
+    - path: "**/*.hpp"
+      instructions: |
+        Le sujet complet du projet est disponible dans `doc/subject.md`. Lis-le avant chaque review.
+        Vérifie que les headers respectent les contraintes d'encapsulation et les définitions imposées par le sujet (enums, classes, IPC).
+
+    - path: "**/*.hpp"
+      instructions: |
+        Vérifie que les headers respectent les contraintes d'encapsulation du sujet PLAZZA :
+        - Les abstractions Process, Thread, Mutex, CondVar doivent être des classes distinctes.
+        - L'IPC doit être encapsulé dans une classe dédiée.
+        - Les enums `PizzaType` et `PizzaSize` doivent avoir les valeurs exactes du sujet si elles sont définies ici.
+        - Pas de logique métier dans les headers sauf inline justifié.
+
+    - path: "Makefile"
+      instructions: |
+        Vérifie que le Makefile contient bien les règles `all`, `re`, `clean` et `fclean` comme exigé par le sujet.
+        Le binaire produit doit s'appeler `plazza`.
