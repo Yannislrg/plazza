@@ -2,9 +2,15 @@
 language: "fr-FR"
 reviews:
   profile: "assertive"
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
   review_status: false
+  auto_review:
+    drafts: true
   finishing_touches:
     docstrings:
+      enabled: false
   path_filters:
     - "!**/node_modules/**"
     - "!**/.github/**"
