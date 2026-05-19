@@ -8,7 +8,7 @@ add_subdirectory(parser)
 add_subdirectory(shell)
 add_subdirectory(pizza)
 
-target_link_libraries(plazza PRIVATE parser shell, pizza)
+target_link_libraries(plazza PRIVATE parser shell pizza)
 
 if(ENABLE_TSAN AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
 	target_compile_options(plazza PRIVATE
