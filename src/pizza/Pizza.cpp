@@ -8,15 +8,15 @@
 #include "Pizza.hpp"
 #include <utility>
 
-PizzaRecipe::PizzaRecipe(std::string type, PizzaSize size,
+PizzaRecipe::PizzaRecipe(PizzaType type, PizzaSize size,
                          std::vector<std::string> ingredients,
                          int baseCookSeconds) noexcept
-    : _type(std::move(type)),
+    : _type(type),
       _size(size),
       _ingredients(std::move(ingredients)),
       _baseCookSeconds(baseCookSeconds) {}
 
-const std::string& PizzaRecipe::type() const noexcept { return _type; }
+PizzaType PizzaRecipe::type() const noexcept { return _type; }
 
 PizzaSize PizzaRecipe::size() const noexcept { return _size; }
 

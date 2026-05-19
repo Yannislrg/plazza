@@ -12,8 +12,8 @@
 #include <vector>
 
 namespace {
-std::vector<std::pair<std::string, PizzaRecipe>>& registry() {
-  static std::vector<std::pair<std::string, PizzaRecipe>> instance;
+std::vector<std::pair<PizzaType, PizzaRecipe>>& registry() {
+  static std::vector<std::pair<PizzaType, PizzaRecipe>> instance;
   return instance;
 }
 
@@ -24,41 +24,41 @@ void registerBuiltinPizzas() {
   }
 
   alreadyRegistered = true;
-  PizzaFactory::registerPizza("Margarita",
-                              PizzaRecipe("Margarita", PizzaSize::M,
+  PizzaFactory::registerPizza(PizzaType::Margarita,
+                              PizzaRecipe(PizzaType::Margarita, PizzaSize::M,
                                           {"dough", "tomato", "gruyere"}, 1));
   PizzaFactory::registerPizza(
-      "Regina",
-      PizzaRecipe("Regina", PizzaSize::M,
+      PizzaType::Regina,
+      PizzaRecipe(PizzaType::Regina, PizzaSize::M,
                   {"dough", "tomato", "gruyere", "ham", "mushrooms"}, 2));
   PizzaFactory::registerPizza(
-      "Americana", PizzaRecipe("Americana", PizzaSize::M,
-                               {"dough", "tomato", "gruyere", "steak"}, 2));
+      PizzaType::Americana,
+      PizzaRecipe(PizzaType::Americana, PizzaSize::M,
+                  {"dough", "tomato", "gruyere", "steak"}, 2));
   PizzaFactory::registerPizza(
-      "Fantasia",
-      PizzaRecipe("Fantasia", PizzaSize::M,
+      PizzaType::Fantasia,
+      PizzaRecipe(PizzaType::Fantasia, PizzaSize::M,
                   {"dough", "tomato", "eggplant", "goat cheese", "chef love"},
                   4));
 }
 }  // namespace
 
-void PizzaFactory::registerPizza(const std::string& typeName,
-                                 const PizzaRecipe& prototype) {
-  auto existingPizza = std::find_if(
-      registry().begin(), registry().end(),
-      [&typeName](const auto& entry) { return entry.first == typeName; });
+void PizzaFactory::registerPizza(PizzaType type, const PizzaRecipe& prototype) {
+  auto existingPizza =
+      std::find_if(registry().begin(), registry().end(),
+                   [type](const auto& entry) { return entry.first == type; });
   if (existingPizza == registry().end()) {
-    registry().emplace_back(typeName, prototype);
+    registry().emplace_back(type, prototype);
   }
 }
 
-PizzaRecipe PizzaFactory::create(const std::string& typeName, PizzaSize size) {
+PizzaRecipe PizzaFactory::create(PizzaType type, PizzaSize size) {
   registerBuiltinPizzas();
-  auto matchingPizza = std::find_if(
-      registry().begin(), registry().end(),
-      [&typeName](const auto& entry) { return entry.first == typeName; });
+  auto matchingPizza =
+      std::find_if(registry().begin(), registry().end(),
+                   [type](const auto& entry) { return entry.first == type; });
   if (matchingPizza == registry().end()) {
-    throw std::runtime_error("Unknown pizza type: " + typeName);
+    throw std::runtime_error("Unknown pizza type");
   }
   return matchingPizza->second.withSize(size);
 }
