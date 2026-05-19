@@ -32,6 +32,11 @@ std::vector<PizzaOrder> Parser::parse(const std::string& line) {
   std::vector<PizzaOrder> orders;
   std::istringstream iss(line);
   std::string segment;
+
+  const auto end = line.find_last_not_of(" \t\r\n");
+  if (end != std::string::npos && line[end] == ';') {
+    Exception::thrownError("empty order segment");
+  }
   while (std::getline(iss, segment, ';')) {
     if (segment.find_first_not_of(" \t\r\n") == std::string::npos) {
       Exception::thrownError("empty order segment");
@@ -46,8 +51,8 @@ std::vector<PizzaOrder> Parser::parse(const std::string& line) {
 
 PizzaOrder Parser::parseLine(const std::string& line) {
   static const std::regex pattern(
-      +R"(^\s*([A-Za-z]+)\s*(S|M|L|XL|XXL)\s*(x[1-9][0-9]*)\s*$)",
-      +std::regex::icase);
+      R"(^\s*([A-Za-z]+)\s*(S|M|L|XL|XXL)\s*(x[1-9][0-9]*)\s*$)",
+      std::regex::icase);
   std::smatch match;
   if (!std::regex_match(line, match, pattern)) {
     Exception::thrownError("invalid token: expected TYPE SIZE NUMBER");
