@@ -1,6 +1,6 @@
 /*
 ** EPITECH PROJECT, 2026
-** raytracer
+** plazza
 ** File description:
 ** Parser
 */
