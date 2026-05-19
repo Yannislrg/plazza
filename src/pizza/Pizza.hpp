@@ -16,7 +16,7 @@ class PizzaRecipe {
   PizzaRecipe() = default;
   PizzaRecipe(PizzaType type, PizzaSize size,
               std::vector<std::string> ingredients,
-              int baseCookSeconds) noexcept;
+              double baseCookSeconds) noexcept;
   ~PizzaRecipe() = default;
 
   PizzaRecipe(const PizzaRecipe&) = default;
@@ -27,7 +27,7 @@ class PizzaRecipe {
   [[nodiscard]] PizzaType type() const noexcept;
   [[nodiscard]] PizzaSize size() const noexcept;
   [[nodiscard]] const std::vector<std::string>& ingredients() const noexcept;
-  [[nodiscard]] int cookingTime(int multiplier) const noexcept;
+  [[nodiscard]] double cookingTime(double multiplier) const noexcept;
 
   [[nodiscard]] PizzaRecipe withSize(PizzaSize newSize) const noexcept;
 
@@ -35,5 +35,5 @@ class PizzaRecipe {
   PizzaType _type{PizzaType::Margarita};
   PizzaSize _size{PizzaSize::M};
   std::vector<std::string> _ingredients;
-  int _baseCookSeconds{0};
+  double _baseCookSeconds = 0;
 };

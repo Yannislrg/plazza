@@ -10,7 +10,7 @@
 
 PizzaRecipe::PizzaRecipe(PizzaType type, PizzaSize size,
                          std::vector<std::string> ingredients,
-                         int baseCookSeconds) noexcept
+                         double baseCookSeconds) noexcept
     : _type(type),
       _size(size),
       _ingredients(std::move(ingredients)),
@@ -24,7 +24,7 @@ const std::vector<std::string>& PizzaRecipe::ingredients() const noexcept {
   return _ingredients;
 }
 
-int PizzaRecipe::cookingTime(int multiplier) const noexcept {
+double PizzaRecipe::cookingTime(double multiplier) const noexcept {
   return _baseCookSeconds * multiplier;
 }
 
