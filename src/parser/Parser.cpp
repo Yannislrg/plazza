@@ -104,19 +104,20 @@ PizzaSize Parser::parseSize(const std::string& token) {
 }
 
 std::size_t Parser::parseNumber(const std::string& token) {
-  if (token.empty() || token[0] != 'x') {
+  std::string low = toLower(token);
+  if (low.empty() || low[0] != 'x') {
     Exception::thrownError("invalid number format (expected x<n>): " + token);
   }
-  if (token.size() < 2 || token[1] < '1' || token[1] > '9') {
+  if (low.size() < 2 || low[1] < '1' || low[1] > '9') {
     Exception::thrownError("quantity must be >= 1: " + token);
   }
-  for (std::size_t i = 2; i < token.size(); ++i) {
-    if (std::isdigit(static_cast<unsigned char>(token[i])) == 0) {
+  for (std::size_t i = 2; i < low.size(); ++i) {
+    if (std::isdigit(static_cast<unsigned char>(low[i])) == 0) {
       Exception::thrownError("invalid number format: " + token);
     }
   }
   try {
-    return std::stoul(token.substr(1));
+    return std::stoul(low.substr(1));
   } catch (const std::exception&) {
     Exception::thrownError("invalid number format: " + token);
   }
