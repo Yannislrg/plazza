@@ -8,6 +8,7 @@
 #include "Parser.hpp"
 #include <cctype>
 #include <cstddef>
+#include <regex>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -33,7 +34,7 @@ std::vector<PizzaOrder> Parser::parse(const std::string& line) {
   std::string segment;
   while (std::getline(iss, segment, ';')) {
     if (segment.find_first_not_of(" \t\r\n") == std::string::npos) {
-      continue;
+      Exception::thrownError("empty order segment");
     }
     orders.push_back(parseLine(segment));
   }
@@ -44,24 +45,17 @@ std::vector<PizzaOrder> Parser::parse(const std::string& line) {
 }
 
 PizzaOrder Parser::parseLine(const std::string& line) {
-  std::istringstream iss(line);
-  std::string type_token;
-  std::string size_token;
-  std::string quantity_token;
-
-  if (!(iss >> type_token >> size_token >> quantity_token)) {
+  static const std::regex pattern(
+      +R"(^\s*([A-Za-z]+)\s*(S|M|L|XL|XXL)\s*(x[1-9][0-9]*)\s*$)",
+      +std::regex::icase);
+  std::smatch match;
+  if (!std::regex_match(line, match, pattern)) {
     Exception::thrownError("invalid token: expected TYPE SIZE NUMBER");
   }
-
-  std::string extra;
-  if (iss >> extra) {
-    Exception::thrownError("unexpected token: " + extra);
-  }
-
   PizzaOrder order = {};
-  order.type = parseType(type_token);
-  order.size = parseSize(size_token);
-  order.quantity = parseNumber(quantity_token);
+  order.type = parseType(match[1].str());
+  order.size = parseSize(match[2].str());
+  order.quantity = parseNumber(match[3].str());
   return order;
 }
 

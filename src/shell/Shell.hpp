@@ -27,5 +27,5 @@ class Shell {
   std::function<void()> statusCb_;
 
   void handleLine(const std::string& line);
-  void printPrompt() const;
+  static void printPrompt();
 };

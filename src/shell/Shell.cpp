@@ -8,6 +8,7 @@
 #include "Shell.hpp"
 #include <iostream>
 #include <string>
+#include "exceptions/Exception.hpp"
 #include "parser/Parser.hpp"
 
 Shell::Shell() : running_(false) {}
@@ -42,10 +43,15 @@ void Shell::handleLine(const std::string& line) {
     }
     return;
   }
-  auto orders = Parser::parse(line);
-  if (orderCb_) {
-    orderCb_(orders);
+  try {
+    auto orders = Parser::parse(line);
+    if (orderCb_) {
+      orderCb_(orders);
+    }
+  } catch (const std::exception& e) {
+    plazza::exceptions::Exception::thrownError(std::string("error: ") +
+                                               e.what());
   }
 }
 
-void Shell::printPrompt() const { std::cout << "> "; }
+void Shell::printPrompt() { std::cout << "> "; }
