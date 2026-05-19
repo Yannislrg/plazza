@@ -14,6 +14,7 @@
 #include <vector>
 #include "Pizza.hpp"
 #include "exceptions/Exception.hpp"
+#include "utils/Constant.hpp"
 
 namespace {
 std::string toLower(const std::string& str) {
@@ -35,16 +36,17 @@ std::vector<PizzaOrder> Parser::parse(const std::string& line) {
 
   const auto end = line.find_last_not_of(" \t\r\n");
   if (end != std::string::npos && line[end] == ';') {
-    Exception::thrownError("empty order segment");
+    Exception::thrownError(std::string(plazza::constants::kEmptyOrderSegment));
   }
   while (std::getline(iss, segment, ';')) {
     if (segment.find_first_not_of(" \t\r\n") == std::string::npos) {
-      Exception::thrownError("empty order segment");
+      Exception::thrownError(
+          std::string(plazza::constants::kEmptyOrderSegment));
     }
     orders.push_back(parseLine(segment));
   }
   if (orders.empty()) {
-    Exception::thrownError("empty order");
+    Exception::thrownError(std::string(plazza::constants::kEmptyOrder));
   }
   return orders;
 }
@@ -55,7 +57,7 @@ PizzaOrder Parser::parseLine(const std::string& line) {
       std::regex::icase);
   std::smatch match;
   if (!std::regex_match(line, match, pattern)) {
-    Exception::thrownError("invalid token: expected TYPE SIZE NUMBER");
+    Exception::thrownError(std::string(plazza::constants::kInvalidToken));
   }
   PizzaOrder order = {};
   order.type = parseType(match[1].str());
@@ -79,7 +81,8 @@ PizzaType Parser::parseType(const std::string& token) {
   if (low == "fantasia") {
     return PizzaType::Fantasia;
   }
-  Exception::thrownError("unknown pizza type: " + token);
+  Exception::thrownError(std::string(plazza::constants::kUnknownPizzaType) +
+                         token);
 }
 
 PizzaSize Parser::parseSize(const std::string& token) {
@@ -100,25 +103,30 @@ PizzaSize Parser::parseSize(const std::string& token) {
   if (low == "xxl") {
     return PizzaSize::XXL;
   }
-  Exception::thrownError("unknown pizza size: " + token);
+  Exception::thrownError(std::string(plazza::constants::kUnknownPizzaSize) +
+                         token);
 }
 
 std::size_t Parser::parseNumber(const std::string& token) {
   std::string low = toLower(token);
   if (low.empty() || low[0] != 'x') {
-    Exception::thrownError("invalid number format (expected x<n>): " + token);
+    Exception::thrownError(
+        std::string(plazza::constants::kInvalidNumberFormatExpected) + token);
   }
   if (low.size() < 2 || low[1] < '1' || low[1] > '9') {
-    Exception::thrownError("quantity must be >= 1: " + token);
+    Exception::thrownError(
+        std::string(plazza::constants::kQuantityMustBePositive) + token);
   }
   for (std::size_t i = 2; i < low.size(); ++i) {
     if (std::isdigit(static_cast<unsigned char>(low[i])) == 0) {
-      Exception::thrownError("invalid number format: " + token);
+      Exception::thrownError(
+          std::string(plazza::constants::kInvalidNumberFormat) + token);
     }
   }
   try {
     return std::stoul(low.substr(1));
   } catch (const std::exception&) {
-    Exception::thrownError("invalid number format: " + token);
+    Exception::thrownError(
+        std::string(plazza::constants::kInvalidNumberFormat) + token);
   }
 }
