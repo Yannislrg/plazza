@@ -110,5 +110,9 @@ std::size_t Parser::parseNumber(const std::string& token) {
       Exception::thrownError("invalid number format: " + token);
     }
   }
-  return std::stoul(token.substr(1));
+  try {
+    return std::stoul(token.substr(1));
+  } catch (const std::exception&) {
+    Exception::thrownError("invalid number format: " + token);
+  }
 }
