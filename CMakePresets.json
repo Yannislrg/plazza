@@ -50,7 +50,7 @@
       "displayName": "Build",
       "steps": [
         { "type": "configure", "name": "build" },
-        { "type": "build",     "name": "build" }
+        { "type": "build", "name": "build" }
       ]
     },
     {
@@ -58,8 +58,8 @@
       "displayName": "Test",
       "steps": [
         { "type": "configure", "name": "test" },
-        { "type": "build",     "name": "test" },
-        { "type": "test",      "name": "test" }
+        { "type": "build", "name": "test" },
+        { "type": "test", "name": "test" }
       ]
     }
   ]
