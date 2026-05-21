@@ -7,16 +7,29 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 option(ENABLE_TSAN "Enable ThreadSanitizer" OFF)
+option(BUILD_TESTS "Build unit tests" OFF)
 
 if(NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY)
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
 endif()
 
+function(plazza_enable_target_warnings target)
+  target_compile_options(${target} PRIVATE -Wall -Wextra -Wpedantic -fPIC)
+endfunction()
+
+include(FetchContent)
+
+FetchContent_Declare(
+    googletest
+    GIT_REPOSITORY https://github.com/google/googletest.git
+    GIT_TAG v1.15.2
+)
+
 add_subdirectory(src)
 
-option(BUILD_TESTS "Build unit tests" OFF)
-
 if(BUILD_TESTS)
+  set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+  FetchContent_MakeAvailable(googletest)
   enable_testing()
   add_subdirectory(tests)
 endif()
