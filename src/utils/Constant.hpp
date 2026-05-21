@@ -25,6 +25,7 @@ constexpr std::string_view kInvalidNumberFormat = "invalid number format: ";
 constexpr std::string_view kThreadCreationFailed = "Failed to create thread";
 constexpr std::string_view kMutexInitFailed = "Failed to initialize mutex";
 constexpr std::string_view kMutexLockFailed = "Failed to lock mutex";
+constexpr std::string_view kMutexTrylockFailed = "Failed to trylock mutex";
 constexpr std::string_view kMutexUnlockFailed = "Failed to unlock mutex";
 constexpr std::string_view kCondVarInitFailed =
     "Failed to initialize condition variable";

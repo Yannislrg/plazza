@@ -6,6 +6,7 @@
 */
 
 #include "concurrency/Mutex.hpp"
+#include <cerrno>
 #include <pthread.h>
 #include <string>
 #include "exceptions/Exception.hpp"
@@ -34,7 +35,17 @@ void Mutex::unlock() {
   }
 }
 
-bool Mutex::trylock() { return pthread_mutex_trylock(&_mutex) == 0; }
+bool Mutex::trylock() {
+  const int result = pthread_mutex_trylock(&_mutex);
+  if (result == 0) {
+    return true;
+  }
+  if (result == EBUSY) {
+    return false;
+  }
+  throw plazza::exceptions::Exception(
+      std::string(plazza::constants::kMutexTrylockFailed));
+}
 
 pthread_mutex_t*
 Mutex::nativeHandle() noexcept {  // NOLINT(misc-include-cleaner)
