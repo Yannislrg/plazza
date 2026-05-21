@@ -17,6 +17,8 @@ class ConditionVariable {
 
   ConditionVariable(const ConditionVariable&) = delete;
   ConditionVariable& operator=(const ConditionVariable&) = delete;
+  ConditionVariable(ConditionVariable&&) = delete;
+  ConditionVariable& operator=(ConditionVariable&&) = delete;
 
   void wait(Mutex& mutex);
   void notifyOne();

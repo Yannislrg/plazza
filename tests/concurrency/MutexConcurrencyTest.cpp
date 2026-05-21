@@ -17,7 +17,12 @@ TEST(MutexConcurrencyTest, TrylockFailsWhenLockedByAnotherThread) {
 
   mutex.lock();
   {
-    Thread t([&mutex, &trylockResult] { trylockResult = mutex.trylock(); });
+    Thread t([&mutex, &trylockResult] {
+      trylockResult = mutex.trylock();
+      if (trylockResult) {
+        mutex.unlock();
+      }
+    });
   }
 
   EXPECT_FALSE(trylockResult);
