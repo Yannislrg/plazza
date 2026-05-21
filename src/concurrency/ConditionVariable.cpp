@@ -6,6 +6,9 @@
 */
 
 #include "concurrency/ConditionVariable.hpp"
+#include <pthread.h>
+#include <string>
+#include "concurrency/Mutex.hpp"
 #include "exceptions/Exception.hpp"
 #include "utils/Constant.hpp"
 

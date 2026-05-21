@@ -8,11 +8,13 @@
 #include "concurrency/Process.hpp"
 #include <sys/wait.h>
 #include <unistd.h>
+#include <functional>
+#include <string>
 #include "exceptions/Exception.hpp"
 #include "utils/Constant.hpp"
 
-Process::Process(std::function<void()> routine) {
-  pid_t forkedPid = fork();
+Process::Process(const std::function<void()>& routine) {
+  const pid_t forkedPid = fork();  // NOLINT(misc-include-cleaner)
   if (forkedPid < 0) {
     throw plazza::exceptions::Exception(
         std::string(plazza::constants::kForkFailed));

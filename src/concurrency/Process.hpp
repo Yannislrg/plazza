@@ -12,7 +12,7 @@
 
 class Process {
  public:
-  explicit Process(std::function<void()> routine);
+  explicit Process(const std::function<void()>& routine);
   ~Process();
 
   Process(const Process&) = delete;

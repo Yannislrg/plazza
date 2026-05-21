@@ -6,6 +6,8 @@
 */
 
 #include "concurrency/Mutex.hpp"
+#include <pthread.h>
+#include <string>
 #include "exceptions/Exception.hpp"
 #include "utils/Constant.hpp"
 
@@ -34,4 +36,7 @@ void Mutex::unlock() {
 
 bool Mutex::trylock() { return pthread_mutex_trylock(&_mutex) == 0; }
 
-pthread_mutex_t* Mutex::nativeHandle() noexcept { return &_mutex; }
+pthread_mutex_t*
+Mutex::nativeHandle() noexcept {  // NOLINT(misc-include-cleaner)
+  return &_mutex;
+}
