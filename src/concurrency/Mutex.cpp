@@ -12,7 +12,7 @@
 Mutex::Mutex() {
   if (pthread_mutex_init(&_mutex, nullptr) != 0) {
     throw plazza::exceptions::Exception(
-        std::string(plazza::constants::mutexInitFailed));
+        std::string(plazza::constants::kMutexInitFailed));
   }
 }
 
@@ -21,14 +21,14 @@ Mutex::~Mutex() { pthread_mutex_destroy(&_mutex); }
 void Mutex::lock() {
   if (pthread_mutex_lock(&_mutex) != 0) {
     throw plazza::exceptions::Exception(
-        std::string(plazza::constants::mutexLockFailed));
+        std::string(plazza::constants::kMutexLockFailed));
   }
 }
 
 void Mutex::unlock() {
   if (pthread_mutex_unlock(&_mutex) != 0) {
     throw plazza::exceptions::Exception(
-        std::string(plazza::constants::mutexUnlockFailed));
+        std::string(plazza::constants::kMutexUnlockFailed));
   }
 }
 

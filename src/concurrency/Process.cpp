@@ -15,7 +15,7 @@ Process::Process(std::function<void()> routine) {
   pid_t forkedPid = fork();
   if (forkedPid < 0) {
     throw plazza::exceptions::Exception(
-        std::string(plazza::constants::forkFailed));
+        std::string(plazza::constants::kForkFailed));
   }
   if (forkedPid == 0) {
     routine();

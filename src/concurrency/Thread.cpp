@@ -14,7 +14,7 @@ Thread::Thread(std::function<void()> routine) {
   if (pthread_create(&_thread, nullptr, &Thread::entryPoint, fn) != 0) {
     delete fn;
     throw plazza::exceptions::Exception(
-        std::string(plazza::constants::threadCreationFailed));
+        std::string(plazza::constants::kThreadCreationFailed));
   }
   _launched = true;
 }
