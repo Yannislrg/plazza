@@ -26,7 +26,8 @@ Thread::~Thread() {
 }
 
 Thread::Thread(Thread&& other) noexcept
-    : _thread(other._thread), _launched(other._launched) {
+    : _thread(other._thread)
+    , _launched(other._launched) {
   other._launched = false;
 }
 

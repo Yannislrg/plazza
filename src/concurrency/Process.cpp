@@ -40,7 +40,8 @@ void Process::wait() {
 pid_t Process::pid() const noexcept { return _pid; }
 
 Process::Process(Process&& other) noexcept
-    : _pid(other._pid), _done(other._done) {
+    : _pid(other._pid)
+    , _done(other._done) {
   other._pid = -1;
   other._done = true;
 }
