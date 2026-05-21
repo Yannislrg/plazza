@@ -13,6 +13,15 @@ if(NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY)
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
 endif()
 
+if(APPLE)
+  execute_process(
+      COMMAND xcrun --sdk macosx --show-sdk-path
+      OUTPUT_VARIABLE MACOS_SDK_PATH
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+  add_compile_options(-isysroot ${MACOS_SDK_PATH})
+endif()
+
 function(plazza_enable_target_warnings target)
   target_compile_options(${target} PRIVATE -Wall -Wextra -Wpedantic -fPIC)
 endfunction()
