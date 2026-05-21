@@ -2,7 +2,7 @@
 ** EPITECH PROJECT, 2026
 ** plazza
 ** File description:
-** ConditionVariable unit tests
+** ConditionVariable functional tests
 */
 
 #include <gtest/gtest.h>
@@ -11,17 +11,10 @@
 #include "fixtures/NotifyFixture.hpp"
 
 TEST_F(NotifyFixture, NotifyOneWakesWaiter) {
-  std::atomic<bool> notified{false};
+  std::atomic<int> notifiedCount{0};
 
   {
-    Thread waiter([this, &notified] {
-      _mutex.lock();
-      while (!_ready) {
-        _conditionVariable.wait(_mutex);
-      }
-      notified = true;
-      _mutex.unlock();
-    });
+    Thread waiter([this, &notifiedCount] { waiterRoutine(notifiedCount); });
 
     _mutex.lock();
     _ready = true;
@@ -29,7 +22,7 @@ TEST_F(NotifyFixture, NotifyOneWakesWaiter) {
     _conditionVariable.notifyOne();
   }
 
-  EXPECT_TRUE(notified);
+  EXPECT_EQ(notifiedCount, 1);
 }
 
 TEST_F(NotifyFixture, NotifyAllWakesAllWaiters) {
@@ -37,30 +30,9 @@ TEST_F(NotifyFixture, NotifyAllWakesAllWaiters) {
   std::atomic<int> notifiedCount{0};
 
   {
-    Thread w1([this, &notifiedCount] {
-      _mutex.lock();
-      while (!_ready) {
-        _conditionVariable.wait(_mutex);
-      }
-      ++notifiedCount;
-      _mutex.unlock();
-    });
-    Thread w2([this, &notifiedCount] {
-      _mutex.lock();
-      while (!_ready) {
-        _conditionVariable.wait(_mutex);
-      }
-      ++notifiedCount;
-      _mutex.unlock();
-    });
-    Thread w3([this, &notifiedCount] {
-      _mutex.lock();
-      while (!_ready) {
-        _conditionVariable.wait(_mutex);
-      }
-      ++notifiedCount;
-      _mutex.unlock();
-    });
+    Thread w1([this, &notifiedCount] { waiterRoutine(notifiedCount); });
+    Thread w2([this, &notifiedCount] { waiterRoutine(notifiedCount); });
+    Thread w3([this, &notifiedCount] { waiterRoutine(notifiedCount); });
 
     _mutex.lock();
     _ready = true;

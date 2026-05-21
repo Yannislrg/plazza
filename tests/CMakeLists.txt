@@ -1,8 +1,10 @@
 add_executable(plazza_tests
     concurrency/ThreadTest.cpp
     concurrency/MutexTest.cpp
-    concurrency/ConditionVariableTest.cpp
     concurrency/ProcessTest.cpp
+    concurrency/MutexConcurrencyTest.cpp
+    concurrency/ConditionVariableTest.cpp
+    concurrency/ProcessConcurrencyTest.cpp
 )
 
 target_include_directories(plazza_tests PRIVATE
