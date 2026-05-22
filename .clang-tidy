@@ -14,7 +14,10 @@ Checks: '*,
          -readability-function-cognitive-complexity,
          -altera-unroll-loops,
          -modernize-use-trailing-return-type,
-         -llvm-include-order'
+         -llvm-include-order,
+         -llvm-header-guard,
+         -portability-avoid-pragma-once,
+         -altera-struct-pack-align'
 
 # Treat warnings as errors so the CI fails on bad code
 WarningsAsErrors: '*'

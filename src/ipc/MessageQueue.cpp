@@ -117,7 +117,7 @@ MessageQueue& MessageQueue::operator<<(const Pizza& pizza) {
   SysVMessage msg{};
   msg.messageType = kMessageType;
   const PackedPizza packed = pack(pizza);
-  std::ranges::copy(packed, msg.data);
+  std::ranges::copy(packed.bytes, msg.data);
   if (msgsnd(queueId_, &msg, sizeof(msg.data), 0) == -1) {
     throw plazza::exceptions::Exception(
         std::string(plazza::constants::kMqSendFailed));
@@ -136,7 +136,7 @@ bool MessageQueue::operator>>(Pizza& pizza) const {
     throw plazza::exceptions::Exception(
         std::string(plazza::constants::kMqReceiveFailed));
   }
-  const PackedPizza packed{msg.data[0], msg.data[1]};
+  const PackedPizza packed{.bytes = {msg.data[0], msg.data[1]}};
   pizza = unpack(packed);
   return true;
 }
