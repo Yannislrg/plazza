@@ -3,5 +3,9 @@
 compile_commands.json
 Makefile
 build/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
 plazza
-CLAUDE.md
+.claude/
+plazza_tests

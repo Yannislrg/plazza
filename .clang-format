@@ -1,9 +1,12 @@
 ---
-Language:        Cpp
+Language: Cpp
 # BasedOnStyle:  LLVM, Google, Chromium, Mozilla, WebKit
-BasedOnStyle:    Google
-IndentWidth:     2
-ColumnLimit:     80
-SortIncludes:    true
-IncludeBlocks:   Merge
-ReflowComments:  true
+BasedOnStyle: Google
+IndentWidth: 2
+ColumnLimit: 80
+SortIncludes: true
+IncludeBlocks: Merge
+ReflowComments: true
+BreakConstructorInitializers: BeforeComma
+PackConstructorInitializers: Never
+ConstructorInitializerIndentWidth: 4
