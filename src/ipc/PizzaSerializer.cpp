@@ -8,9 +8,27 @@
 #include "ipc/PizzaSerializer.hpp"
 #include "Pizza.hpp"
 
-static_assert(Regina == 1 && Margarita == 2 && Americana == 4 && Fantasia == 8,
+namespace {
+
+constexpr int kReginaWireValue = 1;
+constexpr int kMargaritaWireValue = 2;
+constexpr int kAmericanaWireValue = 4;
+constexpr int kFantasiaWireValue = 8;
+
+constexpr int kSWireValue = 1;
+constexpr int kMWireValue = 2;
+constexpr int kLWireValue = 4;
+constexpr int kXLWireValue = 8;
+constexpr int kXXLWireValue = 16;
+
+}  // namespace
+
+static_assert(Regina == kReginaWireValue && Margarita == kMargaritaWireValue &&
+                  Americana == kAmericanaWireValue &&
+                  Fantasia == kFantasiaWireValue,
               "PizzaType values must match the IPC protocol");
-static_assert(S == 1 && M == 2 && L == 4 && XL == 8 && XXL == 16,
+static_assert(S == kSWireValue && M == kMWireValue && L == kLWireValue &&
+                  XL == kXLWireValue && XXL == kXXLWireValue,
               "PizzaSize values must match the IPC protocol");
 
 PackedPizza pack(const Pizza& pizza) {
