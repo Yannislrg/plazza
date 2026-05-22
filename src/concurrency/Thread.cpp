@@ -19,35 +19,35 @@
 Thread::Thread(std::function<void()> routine) {
   auto* const callbackArg =  // NOLINT(cppcoreguidelines-owning-memory)
       new std::function<void()>(std::move(routine));
-  if (pthread_create(&_thread, nullptr, &Thread::entryPoint, callbackArg) !=
+  if (pthread_create(&thread_, nullptr, &Thread::entryPoint, callbackArg) !=
       0) {
     delete callbackArg;  // NOLINT(cppcoreguidelines-owning-memory)
     throw plazza::exceptions::Exception(
         std::string(plazza::constants::kThreadCreationFailed));
   }
-  _launched = true;
+  launched_ = true;
 }
 
 Thread::~Thread() {
-  if (_launched && pthread_join(_thread, nullptr) != 0) {
+  if (launched_ && pthread_join(thread_, nullptr) != 0) {
     std::abort();
   }
 }
 
 Thread::Thread(Thread&& other) noexcept
-    : _thread(other._thread)
-    , _launched(other._launched) {
-  other._launched = false;
+    : thread_(other.thread_)
+    , launched_(other.launched_) {
+  other.launched_ = false;
 }
 
 Thread& Thread::operator=(Thread&& other) noexcept {
   if (this != &other) {
-    if (_launched && pthread_join(_thread, nullptr) != 0) {
+    if (launched_ && pthread_join(thread_, nullptr) != 0) {
       std::abort();
     }
-    _thread = other._thread;
-    _launched = other._launched;
-    other._launched = false;
+    thread_ = other.thread_;
+    launched_ = other.launched_;
+    other.launched_ = false;
   }
   return *this;
 }

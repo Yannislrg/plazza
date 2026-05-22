@@ -16,10 +16,10 @@ TEST_F(NotifyFixture, NotifyOneWakesWaiter) {
   {
     Thread waiter([this, &notifiedCount] { waiterRoutine(notifiedCount); });
 
-    _mutex.lock();
-    _ready = true;
-    _mutex.unlock();
-    _conditionVariable.notifyOne();
+    mutex_.lock();
+    ready_ = true;
+    mutex_.unlock();
+    conditionVariable_.notifyOne();
   }
 
   EXPECT_EQ(notifiedCount, 1);
@@ -34,10 +34,10 @@ TEST_F(NotifyFixture, NotifyAllWakesAllWaiters) {
     Thread w2([this, &notifiedCount] { waiterRoutine(notifiedCount); });
     Thread w3([this, &notifiedCount] { waiterRoutine(notifiedCount); });
 
-    _mutex.lock();
-    _ready = true;
-    _mutex.unlock();
-    _conditionVariable.notifyAll();
+    mutex_.lock();
+    ready_ = true;
+    mutex_.unlock();
+    conditionVariable_.notifyAll();
   }
 
   EXPECT_EQ(notifiedCount, waiterCount);

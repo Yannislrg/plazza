@@ -23,40 +23,40 @@ Process::Process(const std::function<void()>& routine) {
     routine();
     _exit(0);
   }
-  _pid = forkedPid;
+  pid_ = forkedPid;
 }
 
 Process::~Process() {
-  if (!_done && _pid > 0) {
-    waitpid(_pid, nullptr, 0);
+  if (!done_ && pid_ > 0) {
+    waitpid(pid_, nullptr, 0);
   }
 }
 
 void Process::wait() {
-  if (!_done && _pid > 0) {
-    waitpid(_pid, nullptr, 0);
-    _done = true;
+  if (!done_ && pid_ > 0) {
+    waitpid(pid_, nullptr, 0);
+    done_ = true;
   }
 }
 
-pid_t Process::pid() const noexcept { return _pid; }
+pid_t Process::pid() const noexcept { return pid_; }
 
 Process::Process(Process&& other) noexcept
-    : _pid(other._pid)
-    , _done(other._done) {
-  other._pid = -1;
-  other._done = true;
+    : pid_(other.pid_)
+    , done_(other.done_) {
+  other.pid_ = -1;
+  other.done_ = true;
 }
 
 Process& Process::operator=(Process&& other) noexcept {
   if (this != &other) {
-    if (!_done && _pid > 0) {
-      waitpid(_pid, nullptr, 0);
+    if (!done_ && pid_ > 0) {
+      waitpid(pid_, nullptr, 0);
     }
-    _pid = other._pid;
-    _done = other._done;
-    other._pid = -1;
-    other._done = true;
+    pid_ = other.pid_;
+    done_ = other.done_;
+    other.pid_ = -1;
+    other.done_ = true;
   }
   return *this;
 }

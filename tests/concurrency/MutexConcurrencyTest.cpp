@@ -37,5 +37,5 @@ TEST_F(SharedCounterFixture, ProtectsSharedCounter) {
     Thread t4([this] { incrementRoutine(); });
   }
 
-  EXPECT_EQ(_counter, 4 * kIterationsPerThread);
+  EXPECT_EQ(counter_, 4 * kIterationsPerThread);
 }

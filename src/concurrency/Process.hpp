@@ -24,6 +24,6 @@ class Process {
   [[nodiscard]] pid_t pid() const noexcept;
 
  private:
-  pid_t _pid{-1};
-  bool _done{false};
+  pid_t pid_{-1};
+  bool done_{false};
 };

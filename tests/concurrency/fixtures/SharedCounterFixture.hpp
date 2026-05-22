@@ -14,14 +14,14 @@ class SharedCounterFixture : public ::testing::Test {
  protected:
   static constexpr int kIterationsPerThread = 1000;
 
-  Mutex _mutex;
-  int _counter{0};
+  Mutex mutex_;
+  int counter_{0};
 
   void incrementRoutine() {
     for (int i = 0; i < kIterationsPerThread; ++i) {
-      _mutex.lock();
-      ++_counter;
-      _mutex.unlock();
+      mutex_.lock();
+      ++counter_;
+      mutex_.unlock();
     }
   }
 };

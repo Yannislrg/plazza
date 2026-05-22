@@ -25,5 +25,5 @@ class ConditionVariable {
   void notifyAll();
 
  private:
-  pthread_cond_t _cond{};
+  pthread_cond_t cond_{};
 };

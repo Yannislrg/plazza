@@ -23,6 +23,6 @@ class Thread {
  private:
   static void* entryPoint(void* arg);
 
-  pthread_t _thread{};
-  bool _launched{false};
+  pthread_t thread_{};
+  bool launched_{false};
 };

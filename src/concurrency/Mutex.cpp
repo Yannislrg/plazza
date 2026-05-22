@@ -13,30 +13,30 @@
 #include "utils/Constant.hpp"
 
 Mutex::Mutex() {
-  if (pthread_mutex_init(&_mutex, nullptr) != 0) {
+  if (pthread_mutex_init(&mutex_, nullptr) != 0) {
     throw plazza::exceptions::Exception(
         std::string(plazza::constants::kMutexInitFailed));
   }
 }
 
-Mutex::~Mutex() { pthread_mutex_destroy(&_mutex); }
+Mutex::~Mutex() { pthread_mutex_destroy(&mutex_); }
 
 void Mutex::lock() {
-  if (pthread_mutex_lock(&_mutex) != 0) {
+  if (pthread_mutex_lock(&mutex_) != 0) {
     throw plazza::exceptions::Exception(
         std::string(plazza::constants::kMutexLockFailed));
   }
 }
 
 void Mutex::unlock() {
-  if (pthread_mutex_unlock(&_mutex) != 0) {
+  if (pthread_mutex_unlock(&mutex_) != 0) {
     throw plazza::exceptions::Exception(
         std::string(plazza::constants::kMutexUnlockFailed));
   }
 }
 
 bool Mutex::trylock() {
-  const int result = pthread_mutex_trylock(&_mutex);
+  const int result = pthread_mutex_trylock(&mutex_);
   if (result == 0) {
     return true;
   }
@@ -49,5 +49,5 @@ bool Mutex::trylock() {
 
 pthread_mutex_t*
 Mutex::nativeHandle() noexcept {  // NOLINT(misc-include-cleaner)
-  return &_mutex;
+  return &mutex_;
 }

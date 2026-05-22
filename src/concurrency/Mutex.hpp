@@ -26,5 +26,5 @@ class Mutex {
   [[nodiscard]] pthread_mutex_t* nativeHandle() noexcept;
 
  private:
-  pthread_mutex_t _mutex{};
+  pthread_mutex_t mutex_{};
 };

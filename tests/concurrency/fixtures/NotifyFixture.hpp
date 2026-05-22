@@ -14,16 +14,16 @@
 
 class NotifyFixture : public ::testing::Test {
  protected:
-  Mutex _mutex;
-  ConditionVariable _conditionVariable;
-  bool _ready{false};
+  Mutex mutex_;
+  ConditionVariable conditionVariable_;
+  bool ready_{false};
 
   void waiterRoutine(std::atomic<int>& counter) {
-    _mutex.lock();
-    while (!_ready) {
-      _conditionVariable.wait(_mutex);
+    mutex_.lock();
+    while (!ready_) {
+      conditionVariable_.wait(mutex_);
     }
     ++counter;
-    _mutex.unlock();
+    mutex_.unlock();
   }
 };
