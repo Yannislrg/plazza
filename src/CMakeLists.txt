@@ -8,8 +8,9 @@ add_subdirectory(concurrency)
 add_subdirectory(parser)
 add_subdirectory(shell)
 add_subdirectory(pizza)
+add_subdirectory(ipc)
 
-target_link_libraries(plazza PRIVATE concurrency parser shell pizza)
+target_link_libraries(plazza PRIVATE concurrency parser shell pizza ipc)
 
 if(ENABLE_TSAN AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
 	target_compile_options(plazza PRIVATE
