@@ -49,7 +49,8 @@ void ThreadPool::start(IngredientStock& stock, MessageQueue& ipc) {
   _ipc = &ipc;
   _running = true;
   for (auto& cook : _cooks) {
-    _threads.emplace_back([this, &cook] { workerLoop(cook); });
+    Cook* cookPtr = &cook;
+    _threads.emplace_back([this, cookPtr] { workerLoop(*cookPtr); });
   }
 }
 
@@ -65,17 +66,15 @@ void ThreadPool::workerLoop(Cook& cook) {
   while (true) {
     PizzaRecipe pizza;
     {
-      _queueMutex.lock();
+      std::unique_lock<Mutex> lock(_queueMutex);
       while (_queue.empty() && _running) {
-        _conditionVariable.wait(_queueMutex);
+        _conditionVariable.wait(*lock.mutex());
       }
       if (!_running && _queue.empty()) {
-        _queueMutex.unlock();
         break;
       }
       pizza = std::move(_queue.front());
       _queue.pop();
-      _queueMutex.unlock();
     }
     if (_stock != nullptr && _ipc != nullptr) {
       cook.cookPizza(pizza, *_stock, *_ipc);

@@ -82,14 +82,19 @@ void Cook::cookPizza(const PizzaRecipe& pizza, IngredientStock& stock,
     state_ = CookState::COOKING;
     currentPizzaName_ = pizza.getName();
   }
-  stock.waitAndConsumeIngredients(toIngredients(pizza.ingredients()));
-  std::this_thread::sleep_for(std::chrono::milliseconds(
-      static_cast<int>(pizza.cookingTime(multiplier_) * 1000)));
-  messageQueue << Pizza{.type = pizza.type(), .size = pizza.size()};
-  {
+  try {
+    stock.waitAndConsumeIngredients(toIngredients(pizza.ingredients()));
+    std::this_thread::sleep_for(std::chrono::milliseconds(
+        static_cast<int>(pizza.cookingTime(multiplier_) * 1000)));
+    messageQueue << Pizza{.type = pizza.type(), .size = pizza.size()};
+  } catch (...) {
     std::lock_guard lock(mutex_);
     state_ = CookState::IDLE;
     currentPizzaName_.clear();
+    throw;
   }
+  std::lock_guard lock(mutex_);
+  state_ = CookState::IDLE;
+  currentPizzaName_.clear();
 }
 }  // namespace kitchen

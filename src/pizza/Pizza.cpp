@@ -35,20 +35,16 @@ PizzaRecipe PizzaRecipe::withSize(PizzaSize newSize) const noexcept {
 }
 
 std::string PizzaRecipe::getName() const noexcept {
-  std::string name;
   switch (_type) {
     case PizzaType::Margarita:
-      name = "Margarita";
-      break;
+      return "Margarita";
     case PizzaType::Regina:
-      name = "Regina";
-      break;
+      return "Regina";
     case PizzaType::Americana:
-      name = "Americana";
-      break;
+      return "Americana";
     case PizzaType::Fantasia:
-      name = "Fantasia";
-      break;
+      return "Fantasia";
+    default:
+      return "Unknown";
   }
-  return name;
 }
