@@ -8,6 +8,7 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
 #include "concurrency/Mutex.hpp"
 #include "ipc/MessageQueue.hpp"
 #include "kitchen/IngredientStock/IngredientStock.hpp"
@@ -47,7 +48,7 @@ class Cook {
  private:
   int id_;
   CookState state_;
-  Mutex mutex_;
+  mutable Mutex mutex_;
   std::string currentPizzaName_;
   double multiplier_ = 1.0;
 };
