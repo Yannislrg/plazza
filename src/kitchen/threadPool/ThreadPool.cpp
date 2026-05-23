@@ -6,6 +6,7 @@
 */
 
 #include "ThreadPool.hpp"
+#include <mutex>
 
 namespace kitchen {
 ThreadPool::ThreadPool(std::size_t nCooks)
