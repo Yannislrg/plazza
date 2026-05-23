@@ -9,6 +9,7 @@
 
 #include <cstdint>
 #include "Pizza.hpp"
+#include "concurrency/Mutex.hpp"
 #include "ipc/MessageQueue.hpp"
 #include "kitchen/IngredientStock/IngredientStock.hpp"
 #include "pizza/Pizza.hpp"
@@ -46,5 +47,9 @@ class Cook {
                  MessageQueue& messageQueue);
 
  private:
+  int id_;
+  CookState state_;
+  Mutex mutex_;
+  std::string currentPizzaName_;
 };
 }  // namespace kitchen

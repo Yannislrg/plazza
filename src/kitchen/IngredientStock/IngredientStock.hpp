@@ -45,11 +45,11 @@ class IngredientStock {
   [[nodiscard]] std::map<Ingredient, std::size_t> stock() const;
 
  private:
-  std::map<Ingredient, std::size_t> _stock;
-  std::size_t _regenDelayMs;
-  mutable Mutex _mutex;
-  ConditionVariable _cv;
-  Thread _regenThread;
-  bool _running;
+  std::map<Ingredient, std::size_t> stock_;
+  std::size_t regenDelayMs;
+  mutable Mutex mutex_;
+  ConditionVariable cv;
+  Thread regenThread;
+  bool running;
 };
 }  // namespace kitchen

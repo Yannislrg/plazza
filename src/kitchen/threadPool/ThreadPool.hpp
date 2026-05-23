@@ -7,6 +7,18 @@
 
 #pragma once
 
+#include <atomic>
+#include <cstddef>
+#include <queue>
+#include <vector>
+#include "concurrency/ConditionVariable.hpp"
+#include "concurrency/Mutex.hpp"
+#include "concurrency/Thread.hpp"
+#include "ipc/MessageQueue.hpp"
+#include "kitchen/IngredientStock/IngredientStock.hpp"
+#include "kitchen/cook/Cook.hpp"
+#include "pizza/Pizza.hpp"
+
 namespace kitchen {
 class ThreadPool {
  public:
@@ -18,6 +30,28 @@ class ThreadPool {
   ThreadPool(ThreadPool&&) = delete;
   ThreadPool& operator=(ThreadPool&&) = delete;
 
+  explicit ThreadPool(std::size_t nCooks);
+
+  bool addPizza(PizzaRecipe pizza);
+  bool isFull() const;
+  std::size_t getLoad() const;
+  std::vector<CookStatus> getStatus() const;
+  void start(IngredientStock& stock, MessageQueue& ipc);
+  void stop();
+
  private:
+  std::size_t _nCooks;
+  std::size_t _maxCapacity;
+  std::vector<Cook> _cooks;
+  std::vector<Thread> _threads;
+  std::queue<PizzaRecipe> _queue;
+  Mutex _queueMutex;
+  ConditionVariable _cv;
+  bool _running;
+  std::atomic<std::size_t> _load;
+  IngredientStock* _stock;
+  MessageQueue* _ipc;
+
+  void workerLoop(Cook& cook);
 };
 }  // namespace kitchen
