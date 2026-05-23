@@ -6,7 +6,6 @@
 */
 
 #include "ThreadPool.hpp"
-#include <mutex>
 
 namespace kitchen {
 ThreadPool::ThreadPool(std::size_t nCooks)
@@ -67,15 +66,17 @@ void ThreadPool::workerLoop(Cook& cook) {
   while (true) {
     PizzaRecipe pizza;
     {
-      std::unique_lock<Mutex> lock(_queueMutex);
+      _queueMutex.lock();
       while (_queue.empty() && _running) {
-        _conditionVariable.wait(*lock.mutex());
+        _conditionVariable.wait(_queueMutex);
       }
       if (!_running && _queue.empty()) {
+        _queueMutex.unlock();
         break;
       }
       pizza = std::move(_queue.front());
       _queue.pop();
+      _queueMutex.unlock();
     }
     if (_stock != nullptr && _ipc != nullptr) {
       cook.cookPizza(pizza, *_stock, *_ipc);
