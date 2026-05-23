@@ -11,10 +11,10 @@
 PizzaRecipe::PizzaRecipe(PizzaType type, PizzaSize size,
                          std::vector<std::string> ingredients,
                          double baseCookSeconds) noexcept
-    : _type(type),
-      _size(size),
-      _ingredients(std::move(ingredients)),
-      _baseCookSeconds(baseCookSeconds) {}
+    : _type(type)
+    , _size(size)
+    , _ingredients(std::move(ingredients))
+    , _baseCookSeconds(baseCookSeconds) {}
 
 PizzaType PizzaRecipe::type() const noexcept { return _type; }
 
@@ -32,4 +32,23 @@ PizzaRecipe PizzaRecipe::withSize(PizzaSize newSize) const noexcept {
   PizzaRecipe copy = *this;
   copy._size = newSize;
   return copy;
+}
+
+std::string PizzaRecipe::getName() const noexcept {
+  std::string name;
+  switch (_type) {
+    case PizzaType::Margarita:
+      name = "Margarita";
+      break;
+    case PizzaType::Regina:
+      name = "Regina";
+      break;
+    case PizzaType::Americana:
+      name = "Americana";
+      break;
+    case PizzaType::Fantasia:
+      name = "Fantasia";
+      break;
+  }
+  return name;
 }

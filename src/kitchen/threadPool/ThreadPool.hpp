@@ -9,6 +9,7 @@
 
 #include <atomic>
 #include <cstddef>
+#include <deque>
 #include <queue>
 #include <vector>
 #include "concurrency/ConditionVariable.hpp"
@@ -22,8 +23,7 @@
 namespace kitchen {
 class ThreadPool {
  public:
-  ThreadPool();
-  ~ThreadPool();
+  ~ThreadPool() = default;
 
   ThreadPool(const ThreadPool&) = delete;
   ThreadPool& operator=(const ThreadPool&) = delete;
@@ -42,11 +42,11 @@ class ThreadPool {
  private:
   std::size_t _nCooks;
   std::size_t _maxCapacity;
-  std::vector<Cook> _cooks;
+  std::deque<Cook> _cooks;
   std::vector<Thread> _threads;
   std::queue<PizzaRecipe> _queue;
   Mutex _queueMutex;
-  ConditionVariable _cv;
+  ConditionVariable _conditionVariable;
   bool _running;
   std::atomic<std::size_t> _load;
   IngredientStock* _stock;

@@ -8,7 +8,6 @@
 #pragma once
 
 #include <cstdint>
-#include "Pizza.hpp"
 #include "concurrency/Mutex.hpp"
 #include "ipc/MessageQueue.hpp"
 #include "kitchen/IngredientStock/IngredientStock.hpp"
@@ -24,15 +23,14 @@ enum class CookState : std::uint8_t {
 struct CookStatus {
   int id;
   CookState state;
-  PizzaType currentPizza;
+  std::string currentPizza;
 };
 
 class Cook {
  public:
-  Cook();
   // NOLINTNEXTLINE (readability-identifier-length)
-  explicit Cook(int id);
-  ~Cook();
+  explicit Cook(int id, double multiplier = 1.0);
+  ~Cook() = default;
 
   Cook(const Cook&) = delete;
   Cook& operator=(const Cook&) = delete;
@@ -43,7 +41,7 @@ class Cook {
   [[nodiscard]] int id() const noexcept;
   [[nodiscard]] CookState state() const noexcept;
 
-  void cookPizza(PizzaRecipe pizza, IngredientStock& stock,
+  void cookPizza(const PizzaRecipe& pizza, IngredientStock& stock,
                  MessageQueue& messageQueue);
 
  private:
@@ -51,5 +49,6 @@ class Cook {
   CookState state_;
   Mutex mutex_;
   std::string currentPizzaName_;
+  double multiplier_ = 1.0;
 };
 }  // namespace kitchen
