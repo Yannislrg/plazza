@@ -37,4 +37,9 @@ constexpr std::string_view kCondVarBroadcastFailed =
     "Failed to broadcast condition variable";
 constexpr std::string_view kForkFailed = "Failed to fork process";
 
+constexpr std::string_view kMqOpenFailed = "Failed to open message queue";
+constexpr std::string_view kMqSendFailed = "Failed to send on message queue";
+constexpr std::string_view kMqReceiveFailed =
+    "Failed to receive from message queue";
+
 }  // namespace plazza::constants
