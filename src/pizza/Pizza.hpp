@@ -31,6 +31,8 @@ class PizzaRecipe {
 
   [[nodiscard]] PizzaRecipe withSize(PizzaSize newSize) const noexcept;
 
+  [[nodiscard]] std::string getName() const noexcept;
+
  private:
   PizzaType _type{PizzaType::Margarita};
   PizzaSize _size{PizzaSize::M};
