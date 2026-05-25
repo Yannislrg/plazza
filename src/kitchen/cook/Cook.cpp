@@ -14,17 +14,13 @@
 namespace {
 
 const std::unordered_map<std::string, kitchen::Ingredient>& ingredientMap() {
-  static const std::unordered_map<std::string, kitchen::Ingredient> map{
-      {"dough", kitchen::Ingredient::Dough},
-      {"tomato", kitchen::Ingredient::Tomato},
-      {"gruyere", kitchen::Ingredient::Gruyere},
-      {"ham", kitchen::Ingredient::Ham},
-      {"mushrooms", kitchen::Ingredient::Mushrooms},
-      {"steak", kitchen::Ingredient::Steak},
-      {"eggplant", kitchen::Ingredient::Eggplant},
-      {"goat cheese", kitchen::Ingredient::GoatCheese},
-      {"chef love", kitchen::Ingredient::ChiefLove},
-  };
+  static const std::unordered_map<std::string, kitchen::Ingredient> map = [] {
+    std::unordered_map<std::string, kitchen::Ingredient> result;
+    for (const auto& entry : kitchen::IngredientStock::kAllIngredients) {
+      result.emplace(entry.name, entry.value);
+    }
+    return result;
+  }();
   return map;
 }
 
