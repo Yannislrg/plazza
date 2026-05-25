@@ -9,8 +9,7 @@
 
 namespace kitchen {
 ThreadPool::ThreadPool(std::size_t nCooks)
-    : _nCooks(nCooks)
-    , _maxCapacity(2 * nCooks)
+    : _maxCapacity(2 * nCooks)
     , _running(false)
     , _load(0)
     , _stock(nullptr)

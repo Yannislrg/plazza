@@ -9,36 +9,30 @@
 #include <chrono>
 #include <stdexcept>
 #include <thread>
+#include <unordered_map>
 
 namespace {
 
+const std::unordered_map<std::string, kitchen::Ingredient>& ingredientMap() {
+  static const std::unordered_map<std::string, kitchen::Ingredient> map{
+      {"dough", kitchen::Ingredient::Dough},
+      {"tomato", kitchen::Ingredient::Tomato},
+      {"gruyere", kitchen::Ingredient::Gruyere},
+      {"ham", kitchen::Ingredient::Ham},
+      {"mushrooms", kitchen::Ingredient::Mushrooms},
+      {"steak", kitchen::Ingredient::Steak},
+      {"eggplant", kitchen::Ingredient::Eggplant},
+      {"goat cheese", kitchen::Ingredient::GoatCheese},
+      {"chef love", kitchen::Ingredient::ChiefLove},
+  };
+  return map;
+}
+
 kitchen::Ingredient toIngredient(const std::string& ingredientName) {
-  if (ingredientName == "dough") {
-    return kitchen::Ingredient::Dough;
-  }
-  if (ingredientName == "tomato") {
-    return kitchen::Ingredient::Tomato;
-  }
-  if (ingredientName == "gruyere") {
-    return kitchen::Ingredient::Gruyere;
-  }
-  if (ingredientName == "ham") {
-    return kitchen::Ingredient::Ham;
-  }
-  if (ingredientName == "mushrooms") {
-    return kitchen::Ingredient::Mushrooms;
-  }
-  if (ingredientName == "steak") {
-    return kitchen::Ingredient::Steak;
-  }
-  if (ingredientName == "eggplant") {
-    return kitchen::Ingredient::Eggplant;
-  }
-  if (ingredientName == "goat cheese") {
-    return kitchen::Ingredient::GoatCheese;
-  }
-  if (ingredientName == "chef love") {
-    return kitchen::Ingredient::ChiefLove;
+  const auto& ingredients = ingredientMap();
+  if (const auto ingredientIt = ingredients.find(ingredientName);
+      ingredientIt != ingredients.end()) {
+    return ingredientIt->second;
   }
   throw std::invalid_argument("Unknown ingredient: " + ingredientName);
 }

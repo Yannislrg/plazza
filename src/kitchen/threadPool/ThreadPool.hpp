@@ -40,7 +40,6 @@ class ThreadPool {
   void stop();
 
  private:
-  std::size_t _nCooks;
   std::size_t _maxCapacity;
   std::deque<Cook> _cooks;
   std::vector<Thread> _threads;
