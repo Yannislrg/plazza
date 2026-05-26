@@ -177,10 +177,18 @@ void LoadBalancer::updateKitchenStatus(int kitchenId,
   }
   it->cooks.clear();
   for (size_t i = 0; i < response.nCooks; ++i) {
+    std::string pizzaName;
+    if (response.cooks[i].state ==
+        static_cast<uint8_t>(kitchen::CookState::COOKING)) {
+      pizzaName = PizzaFactory::create(
+                      static_cast<PizzaType>(response.cooks[i].pizzaType),
+                      static_cast<PizzaSize>(response.cooks[i].pizzaSize))
+                      .getName();
+    }
     it->cooks.push_back(
         {.id = response.cooks[i].id,
          .state = static_cast<kitchen::CookState>(response.cooks[i].state),
-         .currentPizza = ""});
+         .currentPizza = std::move(pizzaName)});
   }
 }
 
