@@ -25,10 +25,10 @@ constexpr std::chrono::milliseconds kPollInterval{50};
 }  // namespace
 
 KitchenWorker::KitchenWorker(std::size_t nCooks, std::size_t regenDelayMs,
-                             MessageQueue& orderQueue,
+                             double multiplier, MessageQueue& orderQueue,
                              MessageQueue& resultQueue)
     : stock_(regenDelayMs)
-    , pool_(std::make_unique<ThreadPool>(nCooks))
+    , pool_(std::make_unique<ThreadPool>(nCooks, multiplier))
     , orderQueue_(orderQueue)
     , resultQueue_(resultQueue) {}
 

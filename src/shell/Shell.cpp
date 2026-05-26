@@ -28,7 +28,7 @@ void Shell::run() {
 void Shell::stop() { running_ = false; }
 
 void Shell::setOrderCallback(
-    std::function<void(std::vector<PizzaOrder>)> callback) {
+    std::function<void(const std::vector<PizzaOrder>&)> callback) {
   orderCb_ = std::move(callback);
 }
 

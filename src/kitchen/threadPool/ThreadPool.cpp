@@ -9,14 +9,14 @@
 #include <mutex>
 
 namespace kitchen {
-ThreadPool::ThreadPool(std::size_t nCooks)
+ThreadPool::ThreadPool(std::size_t nCooks, double multiplier)
     : _maxCapacity(2 * nCooks)
     , _running(false)
     , _load(0)
     , _stock(nullptr)
     , _ipc(nullptr) {
   for (std::size_t i = 0; i < nCooks; ++i) {
-    _cooks.emplace_back(i);
+    _cooks.emplace_back(static_cast<int>(i), multiplier);
   }
 }
 

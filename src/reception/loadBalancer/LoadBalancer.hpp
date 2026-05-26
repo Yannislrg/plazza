@@ -9,17 +9,20 @@
 
 #include <atomic>
 #include <cstddef>
+#include <functional>
 #include <vector>
 #include "Pizza.hpp"
 #include "concurrency/ConditionVariable.hpp"
 #include "concurrency/Mutex.hpp"
 #include "concurrency/Thread.hpp"
+#include "logger/Logger.hpp"
 #include "pizza/factory/PizzaFactory.hpp"
 #include "reception/kitchenHandle/KitchenHandle.hpp"
 
 class LoadBalancer {
  public:
-  LoadBalancer(PizzaFactory& factory, std::size_t nCooks, std::size_t regenMs);
+  LoadBalancer(PizzaFactory& factory, std::size_t nCooks, std::size_t regenMs,
+               double multiplier);
   ~LoadBalancer();
 
   LoadBalancer(const LoadBalancer&) = delete;
@@ -29,11 +32,13 @@ class LoadBalancer {
 
   void dispatch(const std::vector<PizzaOrder>& orders);
   std::vector<KitchenStatus> getStatus();
+  void setDoneCallback(std::function<void(int, PizzaType, PizzaSize)> callback);
 
  private:
   PizzaFactory& _factory;
   std::size_t _nCooks;
   std::size_t _regenMs;
+  double _multiplier;
   int _nextId;
   std::vector<KitchenHandle> _kitchens;
   Mutex _mutex;
@@ -42,6 +47,8 @@ class LoadBalancer {
   std::vector<KitchenStatus> _kitchenStatuses;
   int _pendingStatusReplies = 0;
   ConditionVariable _statusCv;
+  std::function<void(int, PizzaType, PizzaSize)> _doneCb;
+  Logger _logger;
 
   KitchenHandle* selectKitchen();
   KitchenHandle& spawnKitchen();
