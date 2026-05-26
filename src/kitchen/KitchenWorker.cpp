@@ -97,6 +97,8 @@ void KitchenWorker::sendStatusResponse() const {
        i < std::min(cookStatuses.size(), static_cast<std::size_t>(8)); ++i) {
     reply.cooks[i].id = static_cast<uint8_t>(cookStatuses[i].id);
     reply.cooks[i].state = static_cast<uint8_t>(cookStatuses[i].state);
+    reply.cooks[i].pizzaType = static_cast<uint8_t>(cookStatuses[i].type);
+    reply.cooks[i].pizzaSize = static_cast<uint8_t>(cookStatuses[i].size);
   }
   resultQueue_.send(reply);
 }
