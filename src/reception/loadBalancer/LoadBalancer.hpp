@@ -35,8 +35,9 @@ class LoadBalancer {
   int _nextId;
   std::vector<KitchenHandle> _kitchens;
   Mutex _mutex;
+  std::atomic<bool> _running{false};
   Thread _listenerThread;
-  bool _running;
+  std::vector<KitchenStatus> _kitchenStatuses;
 
   KitchenHandle* selectKitchen();
   KitchenHandle& spawnKitchen();

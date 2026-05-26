@@ -52,24 +52,15 @@ void LoadBalancer::dispatch(const std::vector<PizzaOrder>& orders) {
 
 std::vector<KitchenStatus> LoadBalancer::getStatus() {
   const std::lock_guard lock(_mutex);
-  std::vector<KitchenStatus> status;
-  for (const auto& kitchen : _kitchens) {
-    if (kitchen.alive) {
-      status.push_back(KitchenStatus{.id = kitchen.id,
-                                     .load = kitchen.load,
-                                     .capacity = kitchen.capacity,
-                                     .cooks = {},
-                                     .stock = {}});
-    }
-  }
-  return status;
+  return _kitchenStatuses;
 }
 
 KitchenHandle* LoadBalancer::selectKitchen() {
   KitchenHandle* selected = nullptr;
   std::size_t minLoad = std::numeric_limits<std::size_t>::max();
   for (auto& kitchen : _kitchens) {
-    if (kitchen.alive && kitchen.load < minLoad) {
+    if (kitchen.alive && kitchen.load < kitchen.capacity &&
+        kitchen.load < minLoad) {
       minLoad = kitchen.load;
       selected = &kitchen;
     }
@@ -101,9 +92,14 @@ KitchenHandle& LoadBalancer::spawnKitchen() {
       .orderQueue = std::move(orderQueue),
       .resultQueue = std::move(resultQueue),
       .load = 0,
-      .capacity = _nCooks,
+      .capacity = 2 * _nCooks,
       .alive = true,
   });
+  _kitchenStatuses.push_back(KitchenStatus{.id = kitchenId,
+                                           .load = 0,
+                                           .capacity = _nCooks,
+                                           .cooks = {},
+                                           .stock = {}});
   return _kitchens.back();
 }
 
@@ -121,7 +117,7 @@ void LoadBalancer::listenLoop() {
           continue;
         }
         Pizza result{};
-        if (*kitchen.resultQueue >> result) {
+        if (*kitchen.resultQueue >> result && kitchen.load > 0) {
           kitchen.load--;
         }
       }
