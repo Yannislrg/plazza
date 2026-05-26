@@ -154,6 +154,12 @@ void LoadBalancer::processKitchenPacket(KitchenHandle& kitchen) {
       if (_pendingStatusReplies > 0) {
         _pendingStatusReplies--;
         _statusCv.notifyAll();
+        _kitchenStatuses.erase(
+            std::remove_if(_kitchenStatuses.begin(), _kitchenStatuses.end(),
+                           [&kitchen](const auto& status) {
+                             return status.id == kitchen.id;
+                           }),
+            _kitchenStatuses.end());
       }
     }
   }
