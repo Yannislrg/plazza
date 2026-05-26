@@ -38,7 +38,7 @@ IngredientStock::~IngredientStock() {
   cv_.notifyAll();
 }
 
-void IngredientStock::waitAndConsumeIngredients(
+bool IngredientStock::waitAndConsumeIngredients(
     const std::vector<Ingredient>& needed) {
   mutex_.lock();
   while (running_ && !allAvailable(needed)) {
@@ -46,12 +46,13 @@ void IngredientStock::waitAndConsumeIngredients(
   }
   if (!running_) {
     mutex_.unlock();
-    return;
+    return false;
   }
   for (const auto ingredient : needed) {
     --stock_[ingredient];
   }
   mutex_.unlock();
+  return true;
 }
 
 std::map<Ingredient, std::size_t> IngredientStock::stock() const {

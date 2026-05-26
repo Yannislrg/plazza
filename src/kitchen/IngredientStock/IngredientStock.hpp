@@ -60,7 +60,7 @@ class IngredientStock {
   IngredientStock(IngredientStock&&) = delete;
   IngredientStock& operator=(IngredientStock&&) = delete;
 
-  void waitAndConsumeIngredients(
+  [[nodiscard]] bool waitAndConsumeIngredients(
       const std::vector<Ingredient>& ingredientsNeeded);
   [[nodiscard]] std::map<Ingredient, std::size_t> stock() const;
 

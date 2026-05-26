@@ -73,7 +73,12 @@ void Cook::cookPizza(const PizzaRecipe& pizza, IngredientStock& stock,
     currentPizzaName_ = pizza.getName();
   }
   try {
-    stock.waitAndConsumeIngredients(toIngredients(pizza.ingredients()));
+    if (!stock.waitAndConsumeIngredients(toIngredients(pizza.ingredients()))) {
+      std::lock_guard lock(mutex_);
+      state_ = CookState::IDLE;
+      currentPizzaName_.clear();
+      return;
+    }
     std::this_thread::sleep_for(std::chrono::milliseconds(
         static_cast<int>(pizza.cookingTime(multiplier_) * 1000)));
     messageQueue << Pizza{.type = pizza.type(), .size = pizza.size()};
