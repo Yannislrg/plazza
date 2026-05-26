@@ -36,17 +36,19 @@ void KitchenWorker::run() {
   auto lastActiveTime = std::chrono::steady_clock::now();
 
   while (true) {
-    Pizza order{};
-    if (orderQueue_ >> order) {
-      // NOLINTBEGIN(clang-analyzer-optin.core.EnumCastOutOfRange)
-      if (order.type == static_cast<PizzaType>(0) &&
-          order.size == static_cast<PizzaSize>(0)) {
-        break;
+    if (!pool_->isFull()) {
+      Pizza order{};
+      if (orderQueue_ >> order) {
+        // NOLINTBEGIN(clang-analyzer-optin.core.EnumCastOutOfRange)
+        if (order.type == static_cast<PizzaType>(0) &&
+            order.size == static_cast<PizzaSize>(0)) {
+          break;
+        }
+        // NOLINTEND(clang-analyzer-optin.core.EnumCastOutOfRange)
+        PizzaRecipe recipe = PizzaFactory::create(order.type, order.size);
+        pool_->addPizza(std::move(recipe));
+        lastActiveTime = std::chrono::steady_clock::now();
       }
-      // NOLINTEND(clang-analyzer-optin.core.EnumCastOutOfRange)
-      PizzaRecipe recipe = PizzaFactory::create(order.type, order.size);
-      pool_->addPizza(std::move(recipe));
-      lastActiveTime = std::chrono::steady_clock::now();
     }
 
     const auto now = std::chrono::steady_clock::now();
