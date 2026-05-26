@@ -34,6 +34,8 @@ bool ThreadPool::isFull() const { return _load >= _maxCapacity; }
 
 std::size_t ThreadPool::getLoad() const { return _load.load(); }
 
+std::size_t ThreadPool::getCapacity() const noexcept { return _maxCapacity; }
+
 std::vector<CookStatus> ThreadPool::getStatus() const {
   std::vector<CookStatus> statuses;
   statuses.reserve(_cooks.size());

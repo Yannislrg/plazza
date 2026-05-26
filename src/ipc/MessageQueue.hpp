@@ -9,7 +9,43 @@
 
 #include <cstdint>
 #include <string>
-#include "Pizza.hpp"
+
+namespace plazza {
+
+enum class MessageType : uint8_t {
+  Pizza = 1,          // commande
+  Done = 2,           // pizza prête
+  StatusRequest = 3,  // demande status
+  StatusReply = 4,    // réponse status
+  Ready = 5,          // cuisine prête
+  Shutdown = 6,       // ferme-toi
+  Full = 7            // capacité atteinte
+};
+
+struct PackedCook {
+  uint8_t id;
+  uint8_t state;
+  uint8_t pizzaType;
+  uint8_t pizzaSize;
+};
+
+struct PackedStock {
+  uint8_t quantities[9];
+};
+
+struct Packet {
+  MessageType type;
+  uint8_t kitchenId;
+  uint8_t pizzaType;
+  uint8_t pizzaSize;
+  uint8_t load;
+  uint8_t capacity;
+  uint8_t nCooks;
+  PackedStock stock;
+  PackedCook cooks[8];
+};
+
+}  // namespace plazza
 
 class MessageQueue {
  public:
@@ -23,8 +59,8 @@ class MessageQueue {
   MessageQueue(MessageQueue&&) noexcept;
   MessageQueue& operator=(MessageQueue&&) noexcept;
 
-  MessageQueue& operator<<(const Pizza& pizza);
-  bool operator>>(Pizza& pizza) const;
+  void send(const plazza::Packet& packet);
+  bool receive(plazza::Packet& packet, bool blocking = false) const;
 
  private:
   void createAnchorFile() const;

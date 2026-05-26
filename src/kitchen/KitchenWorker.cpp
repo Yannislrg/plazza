@@ -8,6 +8,7 @@
 #include "kitchen/KitchenWorker.hpp"
 #include <chrono>
 #include <cstddef>
+#include <cstring>
 #include <memory>
 #include <thread>
 #include <utility>
@@ -34,43 +35,70 @@ KitchenWorker::KitchenWorker(std::size_t nCooks, std::size_t regenDelayMs,
 void KitchenWorker::run() {
   pool_->start(stock_, resultQueue_);
   auto lastActiveTime = std::chrono::steady_clock::now();
+  bool running = true;
 
-  while (true) {
-    if (!pool_->isFull()) {
-      Pizza order{};
-      if (orderQueue_ >> order) {
-        // NOLINTBEGIN(clang-analyzer-optin.core.EnumCastOutOfRange)
-        if (order.type == static_cast<PizzaType>(0) &&
-            order.size == static_cast<PizzaSize>(0)) {
-          break;
-        }
-        // NOLINTEND(clang-analyzer-optin.core.EnumCastOutOfRange)
-        PizzaRecipe recipe = PizzaFactory::create(order.type, order.size);
-        pool_->addPizza(std::move(recipe));
-        lastActiveTime = std::chrono::steady_clock::now();
+  while (running) {
+    plazza::Packet packet{};
+    if (orderQueue_.receive(packet)) {
+      if (packet.type == plazza::MessageType::Shutdown) {
+        running = false;
+      } else {
+        handlePacket(packet, lastActiveTime);
       }
     }
 
     const auto now = std::chrono::steady_clock::now();
     if (isIdle()) {
       if (now - lastActiveTime >= kIdleTimeout) {
-        break;
+        running = false;
       }
     } else {
       lastActiveTime = now;
     }
-
     std::this_thread::sleep_for(kPollInterval);
   }
-
   pool_->stop();
   pool_.reset();
 
-  // NOLINTBEGIN(clang-analyzer-optin.core.EnumCastOutOfRange)
-  const Pizza closeSentinel{.type = static_cast<PizzaType>(0),
-                            .size = static_cast<PizzaSize>(0)};
-  // NOLINTEND(clang-analyzer-optin.core.EnumCastOutOfRange)
-  resultQueue_ << closeSentinel;
+  plazza::Packet shutdownPkt{};
+  shutdownPkt.type = plazza::MessageType::Shutdown;
+  resultQueue_.send(shutdownPkt);
+}
+
+void KitchenWorker::handlePacket(
+    const plazza::Packet& packet,
+    std::chrono::steady_clock::time_point& lastActiveTime) {
+  if (packet.type == plazza::MessageType::Pizza) {
+    PizzaRecipe recipe =
+        PizzaFactory::create(static_cast<PizzaType>(packet.pizzaType),
+                             static_cast<PizzaSize>(packet.pizzaSize));
+    pool_->addPizza(std::move(recipe));
+    lastActiveTime = std::chrono::steady_clock::now();
+  } else if (packet.type == plazza::MessageType::StatusRequest) {
+    sendStatusResponse();
+  }
+}
+
+void KitchenWorker::sendStatusResponse() const {
+  plazza::Packet reply{};
+  reply.type = plazza::MessageType::StatusReply;
+  reply.load = static_cast<uint8_t>(pool_->getLoad());
+  reply.capacity = static_cast<uint8_t>(pool_->getCapacity());
+
+  const auto currentStock = stock_.stock();
+  for (std::size_t i = 0; i < 9; ++i) {
+    reply.stock.quantities[i] = static_cast<uint8_t>(
+        currentStock.at(IngredientStock::kAllIngredients[i].value));
+  }
+
+  const auto cookStatuses = pool_->getStatus();
+  reply.nCooks = static_cast<uint8_t>(cookStatuses.size());
+  for (std::size_t i = 0;
+       i < std::min(cookStatuses.size(), static_cast<std::size_t>(8)); ++i) {
+    reply.cooks[i].id = static_cast<uint8_t>(cookStatuses[i].id);
+    reply.cooks[i].state = static_cast<uint8_t>(cookStatuses[i].state);
+  }
+  resultQueue_.send(reply);
 }
 
 bool KitchenWorker::isIdle() const noexcept { return pool_->getLoad() == 0; }

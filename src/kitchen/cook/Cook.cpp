@@ -81,7 +81,12 @@ void Cook::cookPizza(const PizzaRecipe& pizza, IngredientStock& stock,
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(
         static_cast<int>(pizza.cookingTime(multiplier_) * 1000)));
-    messageQueue << Pizza{.type = pizza.type(), .size = pizza.size()};
+    plazza::Packet donePkt{
+        .type = plazza::MessageType::Done,
+        .pizzaType = static_cast<uint8_t>(pizza.type()),
+        .pizzaSize = static_cast<uint8_t>(pizza.size())
+    };
+    messageQueue.send(donePkt);
   } catch (...) {
     std::lock_guard lock(mutex_);
     state_ = CookState::IDLE;

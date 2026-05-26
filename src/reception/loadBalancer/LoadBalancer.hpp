@@ -45,5 +45,7 @@ class LoadBalancer {
 
   static void sendPizza(KitchenHandle& kitchen, const PizzaRecipe& pizza);
   void listenLoop();
+  void processKitchenPacket(KitchenHandle& kitchen);
+  void updateKitchenStatus(int kitchenId, const plazza::Packet& response);
   void removeKitchen(int kitchenId);
 };

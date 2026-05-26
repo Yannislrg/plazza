@@ -8,31 +8,23 @@
 #include "ipc/MessageQueue.hpp"
 #include <sys/ipc.h>
 #include <sys/msg.h>
-#include <algorithm>
 #include <cerrno>
 #include <cstdio>
+#include <cstring>
 #include <memory>
 #include <string>
 #include <utility>
-#include "Pizza.hpp"
 #include "exceptions/Exception.hpp"
-#include "ipc/PizzaSerializer.hpp"
 #include "utils/Constant.hpp"
 
 namespace {
-
-// NOLINTBEGIN(google-runtime-int,cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,modernize-avoid-c-arrays,altera-struct-pack-align)
 struct SysVMessage {
-  long messageType;
-  char data[sizeof(PackedPizza)];
+  long mtype;
+  plazza::Packet packet;
 };
-// NOLINTEND(google-runtime-int,cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,modernize-avoid-c-arrays,altera-struct-pack-align)
 
-// NOLINTNEXTLINE(google-runtime-int)
-constexpr long kMessageType = 1;
 constexpr int kProjectId = 1;
 constexpr int kQueuePermissions = 0600;
-
 }  // namespace
 
 void MessageQueue::createAnchorFile() const {
@@ -113,22 +105,19 @@ MessageQueue& MessageQueue::operator=(MessageQueue&& other) noexcept {
   return *this;
 }
 
-MessageQueue& MessageQueue::operator<<(const Pizza& pizza) {
-  SysVMessage msg{};
-  msg.messageType = kMessageType;
-  const PackedPizza packed = pack(pizza);
-  std::ranges::copy(packed.bytes, msg.data);
-  if (msgsnd(queueId_, &msg, sizeof(msg.data), 0) == -1) {
+void MessageQueue::send(const plazza::Packet& packet) {
+  SysVMessage msg{.mtype = 1, .packet = packet};
+  if (msgsnd(queueId_, &msg, sizeof(plazza::Packet), 0) == -1) {
     throw plazza::exceptions::Exception(
         std::string(plazza::constants::kMqSendFailed));
   }
-  return *this;
 }
 
-bool MessageQueue::operator>>(Pizza& pizza) const {
+bool MessageQueue::receive(plazza::Packet& packet, bool blocking) const {
   SysVMessage msg{};
-  const auto received =
-      msgrcv(queueId_, &msg, sizeof(msg.data), kMessageType, IPC_NOWAIT);
+  const int flags = blocking ? 0 : IPC_NOWAIT;
+  const ssize_t received = msgrcv(queueId_, &msg, sizeof(plazza::Packet), 0, flags);
+
   if (received == -1) {
     if (errno == ENOMSG || errno == EAGAIN) {
       return false;
@@ -136,7 +125,6 @@ bool MessageQueue::operator>>(Pizza& pizza) const {
     throw plazza::exceptions::Exception(
         std::string(plazza::constants::kMqReceiveFailed));
   }
-  const PackedPizza packed{.bytes = {msg.data[0], msg.data[1]}};
-  pizza = unpack(packed);
+  packet = msg.packet;
   return true;
 }

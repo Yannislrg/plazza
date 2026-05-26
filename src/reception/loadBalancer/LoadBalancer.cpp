@@ -52,6 +52,12 @@ void LoadBalancer::dispatch(const std::vector<PizzaOrder>& orders) {
 
 std::vector<KitchenStatus> LoadBalancer::getStatus() {
   const std::lock_guard lock(_mutex);
+  for (auto& kitchen : _kitchens) {
+    if (kitchen.alive) {
+      plazza::Packet request{.type = plazza::MessageType::StatusRequest};
+      kitchen.orderQueue->send(request);
+    }
+  }
   return _kitchenStatuses;
 }
 
@@ -104,7 +110,10 @@ KitchenHandle& LoadBalancer::spawnKitchen() {
 }
 
 void LoadBalancer::sendPizza(KitchenHandle& kitchen, const PizzaRecipe& pizza) {
-  *kitchen.orderQueue << Pizza{.type = pizza.type(), .size = pizza.size()};
+  plazza::Packet pkt{.type = plazza::MessageType::Pizza,
+                     .pizzaType = static_cast<uint8_t>(pizza.type()),
+                     .pizzaSize = static_cast<uint8_t>(pizza.size())};
+  kitchen.orderQueue->send(pkt);
   kitchen.load++;
 }
 
@@ -113,16 +122,52 @@ void LoadBalancer::listenLoop() {
     {
       const std::lock_guard lock(_mutex);
       for (auto& kitchen : _kitchens) {
-        if (!kitchen.alive) {
-          continue;
-        }
-        Pizza result{};
-        if (*kitchen.resultQueue >> result && kitchen.load > 0) {
-          kitchen.load--;
+        if (kitchen.alive) {
+          processKitchenPacket(kitchen);
         }
       }
     }
     std::this_thread::sleep_for(kListenerPollDelay);
+  }
+}
+
+void LoadBalancer::processKitchenPacket(KitchenHandle& kitchen) {
+  plazza::Packet response{};
+  if (kitchen.resultQueue->receive(response)) {
+    if (response.type == plazza::MessageType::Done) {
+      if (kitchen.load > 0) {
+        kitchen.load--;
+      }
+    } else if (response.type == plazza::MessageType::StatusReply) {
+      updateKitchenStatus(kitchen.id, response);
+    } else if (response.type == plazza::MessageType::Shutdown) {
+      kitchen.alive = false;
+    }
+  }
+}
+
+void LoadBalancer::updateKitchenStatus(int kitchenId,
+                                       const plazza::Packet& response) {
+  auto it = std::find_if(_kitchenStatuses.begin(), _kitchenStatuses.end(),
+                         [kitchenId](const auto& kitchenStatus) {
+                           return kitchenStatus.id == kitchenId;
+                         });
+  if (it == _kitchenStatuses.end()) {
+    return;
+  }
+  it->load = response.load;
+  it->capacity = response.capacity;
+  it->stock.clear();
+  for (size_t i = 0; i < 9; ++i) {
+    it->stock[static_cast<kitchen::Ingredient>(i)] =
+        response.stock.quantities[i];
+  }
+  it->cooks.clear();
+  for (size_t i = 0; i < response.nCooks; ++i) {
+    it->cooks.push_back(
+        {.id = response.cooks[i].id,
+         .state = static_cast<kitchen::CookState>(response.cooks[i].state),
+         .currentPizza = ""});
   }
 }
 
