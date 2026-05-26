@@ -2,6 +2,7 @@ add_library(kitchen STATIC
 	IngredientStock/IngredientStock.cpp
 	cook/Cook.cpp
 	threadPool/ThreadPool.cpp
+	KitchenWorker.cpp
 )
 
 target_include_directories(kitchen PUBLIC ..)

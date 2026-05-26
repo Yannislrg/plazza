@@ -14,17 +14,13 @@
 namespace {
 
 const std::unordered_map<std::string, kitchen::Ingredient>& ingredientMap() {
-  static const std::unordered_map<std::string, kitchen::Ingredient> map{
-      {"dough", kitchen::Ingredient::Dough},
-      {"tomato", kitchen::Ingredient::Tomato},
-      {"gruyere", kitchen::Ingredient::Gruyere},
-      {"ham", kitchen::Ingredient::Ham},
-      {"mushrooms", kitchen::Ingredient::Mushrooms},
-      {"steak", kitchen::Ingredient::Steak},
-      {"eggplant", kitchen::Ingredient::Eggplant},
-      {"goat cheese", kitchen::Ingredient::GoatCheese},
-      {"chef love", kitchen::Ingredient::ChiefLove},
-  };
+  static const std::unordered_map<std::string, kitchen::Ingredient> map = [] {
+    std::unordered_map<std::string, kitchen::Ingredient> result;
+    for (const auto& entry : kitchen::IngredientStock::kAllIngredients) {
+      result.emplace(entry.name, entry.value);
+    }
+    return result;
+  }();
   return map;
 }
 
@@ -77,7 +73,12 @@ void Cook::cookPizza(const PizzaRecipe& pizza, IngredientStock& stock,
     currentPizzaName_ = pizza.getName();
   }
   try {
-    stock.waitAndConsumeIngredients(toIngredients(pizza.ingredients()));
+    if (!stock.waitAndConsumeIngredients(toIngredients(pizza.ingredients()))) {
+      std::lock_guard lock(mutex_);
+      state_ = CookState::IDLE;
+      currentPizzaName_.clear();
+      return;
+    }
     std::this_thread::sleep_for(std::chrono::milliseconds(
         static_cast<int>(pizza.cookingTime(multiplier_) * 1000)));
     messageQueue << Pizza{.type = pizza.type(), .size = pizza.size()};
