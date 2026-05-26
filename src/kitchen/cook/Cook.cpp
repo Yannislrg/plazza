@@ -54,8 +54,11 @@ Cook::Cook(int cookId, double multiplier)
 
 CookStatus Cook::status() const noexcept {
   std::lock_guard lock(mutex_);
-  return CookStatus{
-      .id = id_, .state = state_, .currentPizza = currentPizzaName_};
+  return CookStatus{.id = id_,
+                    .state = state_,
+                    .currentPizza = currentPizzaName_,
+                    .type = currentPizzaType_,
+                    .size = currentPizzaSize_};
 }
 
 int Cook::id() const noexcept { return id_; }
@@ -71,6 +74,8 @@ void Cook::cookPizza(const PizzaRecipe& pizza, IngredientStock& stock,
     std::lock_guard lock(mutex_);
     state_ = CookState::COOKING;
     currentPizzaName_ = pizza.getName();
+    currentPizzaType_ = pizza.type();
+    currentPizzaSize_ = pizza.size();
   }
   try {
     if (!stock.waitAndConsumeIngredients(toIngredients(pizza.ingredients()))) {
