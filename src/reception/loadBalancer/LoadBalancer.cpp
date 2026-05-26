@@ -51,12 +51,17 @@ void LoadBalancer::dispatch(const std::vector<PizzaOrder>& orders) {
 }
 
 std::vector<KitchenStatus> LoadBalancer::getStatus() {
-  const std::lock_guard lock(_mutex);
+  std::unique_lock lock(_mutex);
+  _pendingStatusReplies = 0;
   for (auto& kitchen : _kitchens) {
     if (kitchen.alive) {
       plazza::Packet request{.type = plazza::MessageType::StatusRequest};
       kitchen.orderQueue->send(request);
+      _pendingStatusReplies++;
     }
+  }
+  while (_pendingStatusReplies > 0) {
+    _statusCv.wait(_mutex);
   }
   return _kitchenStatuses;
 }
@@ -140,8 +145,16 @@ void LoadBalancer::processKitchenPacket(KitchenHandle& kitchen) {
       }
     } else if (response.type == plazza::MessageType::StatusReply) {
       updateKitchenStatus(kitchen.id, response);
+      if (_pendingStatusReplies > 0) {
+        _pendingStatusReplies--;
+        _statusCv.notifyAll();
+      }
     } else if (response.type == plazza::MessageType::Shutdown) {
       kitchen.alive = false;
+      if (_pendingStatusReplies > 0) {
+        _pendingStatusReplies--;
+        _statusCv.notifyAll();
+      }
     }
   }
 }

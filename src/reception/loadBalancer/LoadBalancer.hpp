@@ -11,6 +11,7 @@
 #include <cstddef>
 #include <vector>
 #include "Pizza.hpp"
+#include "concurrency/ConditionVariable.hpp"
 #include "concurrency/Mutex.hpp"
 #include "concurrency/Thread.hpp"
 #include "pizza/factory/PizzaFactory.hpp"
@@ -39,6 +40,8 @@ class LoadBalancer {
   std::atomic<bool> _running{false};
   Thread _listenerThread;
   std::vector<KitchenStatus> _kitchenStatuses;
+  int _pendingStatusReplies = 0;
+  ConditionVariable _statusCv;
 
   KitchenHandle* selectKitchen();
   KitchenHandle& spawnKitchen();
