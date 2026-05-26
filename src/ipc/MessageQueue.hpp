@@ -13,13 +13,13 @@
 namespace plazza {
 
 enum class MessageType : uint8_t {
-  Pizza = 1,          // commande
-  Done = 2,           // pizza prête
-  StatusRequest = 3,  // demande status
-  StatusReply = 4,    // réponse status
-  Ready = 5,          // cuisine prête
-  Shutdown = 6,       // ferme-toi
-  Full = 7            // capacité atteinte
+  Pizza = 1,
+  Done = 2,
+  StatusRequest = 3,
+  StatusReply = 4,
+  Ready = 5,
+  Shutdown = 6,
+  Full = 7
 };
 
 struct PackedCook {
