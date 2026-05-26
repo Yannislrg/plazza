@@ -4,3 +4,4 @@ add_library(shell STATIC
 )
 
 target_include_directories(shell PUBLIC ..)
+target_link_libraries(shell PUBLIC parser)
