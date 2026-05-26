@@ -7,6 +7,7 @@
 
 #include "Cook.hpp"
 #include <chrono>
+#include <mutex>
 #include <stdexcept>
 #include <thread>
 #include <unordered_map>
