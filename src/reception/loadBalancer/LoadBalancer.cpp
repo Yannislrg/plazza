@@ -106,7 +106,7 @@ std::vector<KitchenStatus> LoadBalancer::getStatus() {
     for (auto it = pending.begin(); it != pending.end();) {
       auto kitchenIt = std::find_if(
           kitchens_.begin(), kitchens_.end(),
-          [id = *it](const KitchenHandle& k) { return k.id == id; });
+          [id = *it](const KitchenHandle& kh) { return kh.id == id; });
       if (kitchenIt == kitchens_.end() || !kitchenIt->alive) {
         it = pending.erase(it);
         continue;
@@ -201,7 +201,7 @@ void LoadBalancer::updateKitchens() {
   }
   kitchens_.erase(
       std::remove_if(kitchens_.begin(), kitchens_.end(),
-                     [](const KitchenHandle& k) { return !k.alive; }),
+                     [](const KitchenHandle& kh) { return !kh.alive; }),
       kitchens_.end());
 }
 
