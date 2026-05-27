@@ -6,6 +6,7 @@
 */
 
 #include "ThreadPool.hpp"
+#include <stdexcept>
 
 namespace kitchen {
 ThreadPool::ThreadPool(std::size_t nCooks, double multiplier)
@@ -14,6 +15,9 @@ ThreadPool::ThreadPool(std::size_t nCooks, double multiplier)
     , _load(0)
     , _stock(nullptr)
     , _ipc(nullptr) {
+  if (multiplier < 0.0 || multiplier > 1.0) {
+    throw std::invalid_argument("multiplier must be in [0,1]");
+  }
   for (std::size_t i = 0; i < nCooks; ++i) {
     _cooks.emplace_back(i, multiplier);
   }

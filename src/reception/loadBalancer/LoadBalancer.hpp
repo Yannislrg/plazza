@@ -29,11 +29,12 @@ class LoadBalancer {
   LoadBalancer& operator=(LoadBalancer&&) = delete;
 
   void dispatch(const std::vector<PizzaOrder>& orders);
-  [[nodiscard]] std::vector<KitchenStatus> getStatus() const;
+  [[nodiscard]] std::vector<KitchenStatus> getStatus();
   void shutdown();
   void updateKitchens();
 
  private:
+  void handlePacket(KitchenHandle& kitchen, const plazza::Packet& packet);
   PizzaFactory& factory_;
   std::vector<KitchenHandle> kitchens_;
   std::atomic<int> nextKitchenId_;
