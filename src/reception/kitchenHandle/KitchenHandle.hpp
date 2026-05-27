@@ -18,9 +18,9 @@
 struct KitchenHandle {
   int id;
   pid_t pid;
-  std::unique_ptr<Process> process;
   std::unique_ptr<MessageQueue> orderQueue;
   std::unique_ptr<MessageQueue> resultQueue;
+  std::unique_ptr<Process> process;
   std::size_t load;
   std::size_t capacity;
   bool alive;

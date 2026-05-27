@@ -42,8 +42,9 @@ struct Packet {
   uint8_t capacity;
   uint8_t nCooks;
   PackedStock stock;
-  PackedCook cooks[1024];
-};
+  PackedCook cooks[50];
+  };
+
 
 }  // namespace plazza
 

@@ -41,13 +41,15 @@ LoadBalancer::~LoadBalancer() { _running = false; }
 
 void LoadBalancer::dispatch(const std::vector<PizzaOrder>& orders) {
   for (const auto& order : orders) {
-    auto recipe = PizzaFactory::create(order.type, order.size);
-    const std::lock_guard lock(_mutex);
-    auto* kitchen = selectKitchen();
-    if (kitchen == nullptr) {
-      kitchen = &spawnKitchen();
+    for (std::size_t i = 0; i < order.quantity; ++i) {
+      auto recipe = PizzaFactory::create(order.type, order.size);
+      const std::lock_guard lock(_mutex);
+      auto* kitchen = selectKitchen();
+      if (kitchen == nullptr) {
+        kitchen = &spawnKitchen();
+      }
+      sendPizza(*kitchen, recipe);
     }
-    sendPizza(*kitchen, recipe);
   }
 }
 
@@ -101,9 +103,9 @@ KitchenHandle& LoadBalancer::spawnKitchen() {
   _kitchens.push_back(KitchenHandle{
       .id = kitchenId,
       .pid = process->pid(),
-      .process = std::move(process),
       .orderQueue = std::move(orderQueue),
       .resultQueue = std::move(resultQueue),
+      .process = std::move(process),
       .load = 0,
       .capacity = 2 * _nCooks,
       .alive = true,
@@ -140,7 +142,7 @@ void LoadBalancer::listenLoop() {
 
 void LoadBalancer::processKitchenPacket(KitchenHandle& kitchen) {
   plazza::Packet response{};
-  if (kitchen.resultQueue->receive(response)) {
+  while (kitchen.resultQueue->receive(response)) {
     if (response.type == plazza::MessageType::Done) {
       if (kitchen.load > 0) {
         kitchen.load--;
@@ -156,13 +158,14 @@ void LoadBalancer::processKitchenPacket(KitchenHandle& kitchen) {
       if (_pendingStatusReplies > 0) {
         _pendingStatusReplies--;
         _statusCv.notifyAll();
-        _kitchenStatuses.erase(
-            std::remove_if(_kitchenStatuses.begin(), _kitchenStatuses.end(),
-                           [&kitchen](const auto& status) {
-                             return status.id == kitchen.id;
-                           }),
-            _kitchenStatuses.end());
       }
+      _kitchenStatuses.erase(
+          std::remove_if(_kitchenStatuses.begin(), _kitchenStatuses.end(),
+                         [kitchenId = kitchen.id](const auto& status) {
+                           return status.id == kitchenId;
+                         }),
+          _kitchenStatuses.end());
+      break;
     }
   }
 }
