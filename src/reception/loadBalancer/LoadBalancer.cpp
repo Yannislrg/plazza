@@ -195,12 +195,4 @@ void LoadBalancer::updateKitchens() {
                                    return !kitchen.alive;
                                  }),
                   kitchens_.end());
-
-  for (auto& kitchen : kitchens_) {
-    if (kitchen.alive) {
-      plazza::Packet statusRequest{};
-      statusRequest.type = plazza::MessageType::StatusRequest;
-      kitchen.orderQueue->send(statusRequest);
-    }
-  }
 }
