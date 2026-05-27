@@ -31,6 +31,9 @@ class KitchenWorker {
 
  private:
   [[nodiscard]] bool isIdle() const noexcept;
+  void handlePacket(const plazza::Packet& packet,
+                    std::chrono::steady_clock::time_point& lastActiveTime);
+  void sendStatusResponse() const;
 
   IngredientStock stock_;
   std::unique_ptr<ThreadPool> pool_;

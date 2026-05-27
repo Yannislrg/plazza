@@ -35,6 +35,7 @@ class ThreadPool {
   bool addPizza(PizzaRecipe pizza);
   bool isFull() const;
   std::size_t getLoad() const;
+  [[nodiscard]] std::size_t getCapacity() const noexcept;
   std::vector<CookStatus> getStatus() const;
   void start(IngredientStock& stock, MessageQueue& ipc);
   void stop();

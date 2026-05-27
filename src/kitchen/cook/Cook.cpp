@@ -54,8 +54,11 @@ Cook::Cook(int cookId, double multiplier)
 
 CookStatus Cook::status() const noexcept {
   std::lock_guard lock(mutex_);
-  return CookStatus{
-      .id = id_, .state = state_, .currentPizza = currentPizzaName_};
+  return CookStatus{.id = id_,
+                    .state = state_,
+                    .currentPizza = currentPizzaName_,
+                    .type = currentPizzaType_,
+                    .size = currentPizzaSize_};
 }
 
 int Cook::id() const noexcept { return id_; }
@@ -71,6 +74,8 @@ void Cook::cookPizza(const PizzaRecipe& pizza, IngredientStock& stock,
     std::lock_guard lock(mutex_);
     state_ = CookState::COOKING;
     currentPizzaName_ = pizza.getName();
+    currentPizzaType_ = pizza.type();
+    currentPizzaSize_ = pizza.size();
   }
   try {
     if (!stock.waitAndConsumeIngredients(toIngredients(pizza.ingredients()))) {
@@ -81,7 +86,12 @@ void Cook::cookPizza(const PizzaRecipe& pizza, IngredientStock& stock,
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(
         static_cast<int>(pizza.cookingTime(multiplier_) * 1000)));
-    messageQueue << Pizza{.type = pizza.type(), .size = pizza.size()};
+    plazza::Packet donePkt{
+        .type = plazza::MessageType::Done,
+        .pizzaType = static_cast<uint8_t>(pizza.type()),
+        .pizzaSize = static_cast<uint8_t>(pizza.size())
+    };
+    messageQueue.send(donePkt);
   } catch (...) {
     std::lock_guard lock(mutex_);
     state_ = CookState::IDLE;

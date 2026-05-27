@@ -25,6 +25,8 @@ struct CookStatus {
   int id;
   CookState state;
   std::string currentPizza;
+  PizzaType type;
+  PizzaSize size;
 };
 
 class Cook {
@@ -50,6 +52,8 @@ class Cook {
   CookState state_;
   mutable Mutex mutex_;
   std::string currentPizzaName_;
+  PizzaType currentPizzaType_{PizzaType::Margarita};
+  PizzaSize currentPizzaSize_{PizzaSize::M};
   double multiplier_ = 1.0;
 };
 }  // namespace kitchen
