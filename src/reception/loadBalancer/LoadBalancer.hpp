@@ -19,7 +19,8 @@
 
 class LoadBalancer {
  public:
-  LoadBalancer(PizzaFactory& factory, std::size_t nCooks, std::size_t regenMs);
+  LoadBalancer(PizzaFactory& factory, std::size_t nCooks, std::size_t regenMs,
+               double multiplier = 1.0);
   ~LoadBalancer();
 
   LoadBalancer(const LoadBalancer&) = delete;
@@ -28,27 +29,16 @@ class LoadBalancer {
   LoadBalancer& operator=(LoadBalancer&&) = delete;
 
   void dispatch(const std::vector<PizzaOrder>& orders);
-  std::vector<KitchenStatus> getStatus();
+  [[nodiscard]] std::vector<KitchenStatus> getStatus();
+  void shutdown();
+  void updateKitchens();
 
  private:
-  PizzaFactory& _factory;
-  std::size_t _nCooks;
-  std::size_t _regenMs;
-  int _nextId;
-  std::vector<KitchenHandle> _kitchens;
-  Mutex _mutex;
-  std::atomic<bool> _running{false};
-  Thread _listenerThread;
-  std::vector<KitchenStatus> _kitchenStatuses;
-  int _pendingStatusReplies = 0;
-  ConditionVariable _statusCv;
-
-  KitchenHandle* selectKitchen();
-  KitchenHandle& spawnKitchen();
-
-  static void sendPizza(KitchenHandle& kitchen, const PizzaRecipe& pizza);
-  void listenLoop();
-  void processKitchenPacket(KitchenHandle& kitchen);
-  void updateKitchenStatus(int kitchenId, const plazza::Packet& response);
-  void removeKitchen(int kitchenId);
+  void handlePacket(KitchenHandle& kitchen, const plazza::Packet& packet);
+  PizzaFactory& factory_;
+  std::vector<KitchenHandle> kitchens_;
+  std::atomic<int> nextKitchenId_;
+  std::size_t nCooks_;
+  std::size_t regenMs_;
+  double multiplier_;
 };

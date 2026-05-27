@@ -30,7 +30,7 @@ class ThreadPool {
   ThreadPool(ThreadPool&&) = delete;
   ThreadPool& operator=(ThreadPool&&) = delete;
 
-  explicit ThreadPool(std::size_t nCooks);
+  explicit ThreadPool(std::size_t nCooks, double multiplier);
 
   bool addPizza(PizzaRecipe pizza);
   bool isFull() const;

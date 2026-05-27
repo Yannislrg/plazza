@@ -88,8 +88,7 @@ void Cook::cookPizza(const PizzaRecipe& pizza, IngredientStock& stock,
         static_cast<int>(pizza.cookingTime(multiplier_) * 1000)));
     plazza::Packet donePkt{
         .type = plazza::MessageType::Done,
-        .pizzaType = static_cast<uint8_t>(pizza.type()),
-        .pizzaSize = static_cast<uint8_t>(pizza.size())
+        .pizza = pack({.type = pizza.type(), .size = pizza.size()})
     };
     messageQueue.send(donePkt);
   } catch (...) {
