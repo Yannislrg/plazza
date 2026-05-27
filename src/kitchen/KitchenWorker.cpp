@@ -69,9 +69,8 @@ void KitchenWorker::handlePacket(
     const plazza::Packet& packet,
     std::chrono::steady_clock::time_point& lastActiveTime) {
   if (packet.type == plazza::MessageType::Pizza) {
-    PizzaRecipe recipe =
-        PizzaFactory::create(static_cast<PizzaType>(packet.pizzaType),
-                             static_cast<PizzaSize>(packet.pizzaSize));
+    Pizza pizza = unpack(packet.pizza);
+    PizzaRecipe recipe = PizzaFactory::create(pizza.type, pizza.size);
     pool_->addPizza(std::move(recipe));
     lastActiveTime = std::chrono::steady_clock::now();
   } else if (packet.type == plazza::MessageType::StatusRequest) {
@@ -93,12 +92,14 @@ void KitchenWorker::sendStatusResponse() const {
 
   const auto cookStatuses = pool_->getStatus();
   reply.nCooks = static_cast<uint8_t>(cookStatuses.size());
-  for (std::size_t i = 0;
-       i < std::min(cookStatuses.size(), static_cast<std::size_t>(8)); ++i) {
-    reply.cooks[i].id = static_cast<uint8_t>(cookStatuses[i].id);
-    reply.cooks[i].state = static_cast<uint8_t>(cookStatuses[i].state);
-    reply.cooks[i].pizzaType = static_cast<uint8_t>(cookStatuses[i].type);
-    reply.cooks[i].pizzaSize = static_cast<uint8_t>(cookStatuses[i].size);
+  for (const auto& status : cookStatuses) {
+    plazza::Packet cookPacket{};
+    cookPacket.type = plazza::MessageType::CookStatus;
+    cookPacket.cook.id = static_cast<uint8_t>(status.id);
+    cookPacket.cook.state = static_cast<uint8_t>(status.state);
+    cookPacket.cook.pizzaType = static_cast<uint8_t>(status.type);
+    cookPacket.cook.pizzaSize = static_cast<uint8_t>(status.size);
+    resultQueue_.send(cookPacket);
   }
   resultQueue_.send(reply);
 }
