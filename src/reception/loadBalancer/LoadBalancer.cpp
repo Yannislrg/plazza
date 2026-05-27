@@ -28,10 +28,11 @@ constexpr std::chrono::milliseconds kListenerPollDelay{50};
 }  // namespace
 
 LoadBalancer::LoadBalancer(PizzaFactory& factory, std::size_t nCooks,
-                           std::size_t regenMs)
+                           std::size_t regenMs, double multiplier)
     : _factory(factory)
     , _nCooks(nCooks)
     , _regenMs(regenMs)
+    , _multiplier(multiplier)
     , _nextId(1)
     , _running(true)
     , _listenerThread([this]() { this->listenLoop(); }) {}
@@ -86,15 +87,16 @@ KitchenHandle& LoadBalancer::spawnKitchen() {
   auto resultQueue = std::make_unique<MessageQueue>(
       "result_queue_" + std::to_string(kitchenId), MessageQueue::Mode::Create);
 
-  auto process = std::make_unique<Process>(
-      [kitchenId, nCooks = _nCooks, regenMs = _regenMs]() {
-        MessageQueue orders("order_queue_" + std::to_string(kitchenId),
-                            MessageQueue::Mode::Open);
-        MessageQueue results("result_queue_" + std::to_string(kitchenId),
-                             MessageQueue::Mode::Open);
-        kitchen::KitchenWorker worker(nCooks, regenMs, orders, results);
-        worker.run();
-      });
+  auto process = std::make_unique<Process>([kitchenId, nCooks = _nCooks,
+                                            regenMs = _regenMs,
+                                            multiplier = _multiplier]() {
+    MessageQueue orders("order_queue_" + std::to_string(kitchenId),
+                        MessageQueue::Mode::Open);
+    MessageQueue results("result_queue_" + std::to_string(kitchenId),
+                         MessageQueue::Mode::Open);
+    kitchen::KitchenWorker worker(nCooks, regenMs, multiplier, orders, results);
+    worker.run();
+  });
 
   _kitchens.push_back(KitchenHandle{
       .id = kitchenId,
@@ -204,4 +206,9 @@ void LoadBalancer::removeKitchen(int kitchenId) {
       _kitchens,
       [kitchenId](const auto& kitchen) { return kitchen.id == kitchenId; });
   _kitchens.erase(first, last);
+}
+
+void LoadBalancer::setDoneCallback(
+    std::function<void(int, PizzaType, PizzaSize)> callback) {
+  _doneCb = std::move(callback);
 }

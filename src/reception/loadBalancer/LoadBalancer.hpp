@@ -9,6 +9,7 @@
 
 #include <atomic>
 #include <cstddef>
+#include <functional>
 #include <vector>
 #include "Pizza.hpp"
 #include "concurrency/ConditionVariable.hpp"
@@ -20,7 +21,8 @@
 
 class LoadBalancer {
  public:
-  LoadBalancer(PizzaFactory& factory, std::size_t nCooks, std::size_t regenMs);
+  LoadBalancer(PizzaFactory& factory, std::size_t nCooks, std::size_t regenMs,
+               double multiplier);
   ~LoadBalancer();
 
   LoadBalancer(const LoadBalancer&) = delete;
