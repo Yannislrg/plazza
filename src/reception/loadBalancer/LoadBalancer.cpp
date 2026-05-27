@@ -6,202 +6,148 @@
 */
 
 #include "LoadBalancer.hpp"
-#include <algorithm>
-#include <chrono>
-#include <cstddef>
-#include <limits>
-#include <memory>
-#include <mutex>
-#include <string>
-#include <thread>
-#include <utility>
-#include <vector>
-#include "Pizza.hpp"
-#include "concurrency/Process.hpp"
 #include "ipc/MessageQueue.hpp"
 #include "kitchen/KitchenWorker.hpp"
-#include "pizza/factory/PizzaFactory.hpp"
-#include "reception/kitchenHandle/KitchenHandle.hpp"
 
 namespace {
-constexpr std::chrono::milliseconds kListenerPollDelay{50};
+void createNewKitchen(std::vector<KitchenHandle>& kitchens,
+                      std::atomic<int>& nextKitchenId, std::size_t nCooks,
+                      std::size_t regenMs, double multiplier) {
+  int id = nextKitchenId++;
+  std::string orderPath = "/tmp/orderQueue" + std::to_string(id);
+  std::string resultPath = "/tmp/resultQueue" + std::to_string(id);
+
+  KitchenHandle newKitchen;
+  newKitchen.id = id;
+  newKitchen.orderQueue = std::make_unique<MessageQueue>(orderPath, MessageQueue::Mode::Create);
+  newKitchen.resultQueue = std::make_unique<MessageQueue>(resultPath, MessageQueue::Mode::Create);
+  
+  newKitchen.process = std::make_unique<Process>([orderPath, resultPath, nCooks, regenMs, multiplier] {
+    MessageQueue orders(orderPath, MessageQueue::Mode::Open);
+    MessageQueue results(resultPath, MessageQueue::Mode::Open);
+    kitchen::KitchenWorker worker(nCooks, regenMs, orders, results, multiplier);
+    worker.run();
+  });
+
+  newKitchen.load = 0;
+  newKitchen.capacity = 2 * nCooks;
+  newKitchen.alive = true;
+  newKitchen.status.id = newKitchen.id;
+  newKitchen.status.load = 0;
+  newKitchen.status.capacity = newKitchen.capacity;
+  kitchens.push_back(std::move(newKitchen));
+}
 }  // namespace
 
 LoadBalancer::LoadBalancer(PizzaFactory& factory, std::size_t nCooks,
-                           std::size_t regenMs)
-    : _factory(factory)
-    , _nCooks(nCooks)
-    , _regenMs(regenMs)
-    , _nextId(1)
-    , _running(true)
-    , _listenerThread([this]() { this->listenLoop(); }) {}
+                           std::size_t regenMs, double multiplier)
+    : factory_(factory)
+    , nextKitchenId_(0)
+    , nCooks_(nCooks)
+    , regenMs_(regenMs)
+    , multiplier_(multiplier) {}
 
-LoadBalancer::~LoadBalancer() { _running = false; }
+LoadBalancer::~LoadBalancer() { shutdown(); }
+
+void LoadBalancer::shutdown() {
+  for (auto& kitchen : kitchens_) {
+    if (kitchen.alive) {
+      plazza::Packet shutdownPacket{};
+      shutdownPacket.type = plazza::MessageType::Shutdown;
+      kitchen.orderQueue->send(shutdownPacket);
+      kitchen.process->wait();
+      kitchen.alive = false;
+    }
+  }
+}
+
+std::vector<KitchenStatus> LoadBalancer::getStatus() const {
+  std::vector<KitchenStatus> statuses;
+  for (const auto& kitchen : kitchens_) {
+    if (kitchen.alive) {
+      statuses.push_back(kitchen.status);
+    }
+  }
+  return statuses;
+}
 
 void LoadBalancer::dispatch(const std::vector<PizzaOrder>& orders) {
   for (const auto& order : orders) {
-    auto recipe = PizzaFactory::create(order.type, order.size);
-    const std::lock_guard lock(_mutex);
-    auto* kitchen = selectKitchen();
-    if (kitchen == nullptr) {
-      kitchen = &spawnKitchen();
-    }
-    sendPizza(*kitchen, recipe);
-  }
-}
-
-std::vector<KitchenStatus> LoadBalancer::getStatus() {
-  std::unique_lock lock(_mutex);
-  _pendingStatusReplies = 0;
-  for (auto& kitchen : _kitchens) {
-    if (kitchen.alive) {
-      plazza::Packet request{.type = plazza::MessageType::StatusRequest};
-      kitchen.orderQueue->send(request);
-      _pendingStatusReplies++;
-    }
-  }
-  while (_pendingStatusReplies > 0) {
-    _statusCv.wait(_mutex);
-  }
-  return _kitchenStatuses;
-}
-
-KitchenHandle* LoadBalancer::selectKitchen() {
-  KitchenHandle* selected = nullptr;
-  std::size_t minLoad = std::numeric_limits<std::size_t>::max();
-  for (auto& kitchen : _kitchens) {
-    if (kitchen.alive && kitchen.load < kitchen.capacity &&
-        kitchen.load < minLoad) {
-      minLoad = kitchen.load;
-      selected = &kitchen;
-    }
-  }
-  return selected;
-}
-
-KitchenHandle& LoadBalancer::spawnKitchen() {
-  const int kitchenId = _nextId++;
-  auto orderQueue = std::make_unique<MessageQueue>(
-      "order_queue_" + std::to_string(kitchenId), MessageQueue::Mode::Create);
-  auto resultQueue = std::make_unique<MessageQueue>(
-      "result_queue_" + std::to_string(kitchenId), MessageQueue::Mode::Create);
-
-  auto process = std::make_unique<Process>(
-      [kitchenId, nCooks = _nCooks, regenMs = _regenMs]() {
-        MessageQueue orders("order_queue_" + std::to_string(kitchenId),
-                            MessageQueue::Mode::Open);
-        MessageQueue results("result_queue_" + std::to_string(kitchenId),
-                             MessageQueue::Mode::Open);
-        kitchen::KitchenWorker worker(nCooks, regenMs, orders, results);
-        worker.run();
-      });
-
-  _kitchens.push_back(KitchenHandle{
-      .id = kitchenId,
-      .pid = process->pid(),
-      .process = std::move(process),
-      .orderQueue = std::move(orderQueue),
-      .resultQueue = std::move(resultQueue),
-      .load = 0,
-      .capacity = 2 * _nCooks,
-      .alive = true,
-  });
-  _kitchenStatuses.push_back(KitchenStatus{.id = kitchenId,
-                                           .load = 0,
-                                           .capacity = _nCooks,
-                                           .cooks = {},
-                                           .stock = {}});
-  return _kitchens.back();
-}
-
-void LoadBalancer::sendPizza(KitchenHandle& kitchen, const PizzaRecipe& pizza) {
-  plazza::Packet pkt{.type = plazza::MessageType::Pizza,
-                     .pizzaType = static_cast<uint8_t>(pizza.type()),
-                     .pizzaSize = static_cast<uint8_t>(pizza.size())};
-  kitchen.orderQueue->send(pkt);
-  kitchen.load++;
-}
-
-void LoadBalancer::listenLoop() {
-  while (_running) {
-    {
-      const std::lock_guard lock(_mutex);
-      for (auto& kitchen : _kitchens) {
-        if (kitchen.alive) {
-          processKitchenPacket(kitchen);
+    for (std::size_t i = 0; i < order.quantity; ++i) {
+      KitchenHandle* bestKitchen = nullptr;
+      for (auto& kitchen : kitchens_) {
+        if (kitchen.alive && kitchen.load < kitchen.capacity) {
+          if (bestKitchen == nullptr || kitchen.load < bestKitchen->load) {
+            bestKitchen = &kitchen;
+          }
         }
       }
-    }
-    std::this_thread::sleep_for(kListenerPollDelay);
-  }
-}
-
-void LoadBalancer::processKitchenPacket(KitchenHandle& kitchen) {
-  plazza::Packet response{};
-  if (kitchen.resultQueue->receive(response)) {
-    if (response.type == plazza::MessageType::Done) {
-      if (kitchen.load > 0) {
-        kitchen.load--;
+      if (bestKitchen == nullptr) {
+        createNewKitchen(kitchens_, nextKitchenId_, nCooks_, regenMs_,
+                         multiplier_);
+        bestKitchen = &kitchens_.back();
       }
-    } else if (response.type == plazza::MessageType::StatusReply) {
-      updateKitchenStatus(kitchen.id, response);
-      if (_pendingStatusReplies > 0) {
-        _pendingStatusReplies--;
-        _statusCv.notifyAll();
-      }
-    } else if (response.type == plazza::MessageType::Shutdown) {
-      kitchen.alive = false;
-      if (_pendingStatusReplies > 0) {
-        _pendingStatusReplies--;
-        _statusCv.notifyAll();
-        _kitchenStatuses.erase(
-            std::remove_if(_kitchenStatuses.begin(), _kitchenStatuses.end(),
-                           [&kitchen](const auto& status) {
-                             return status.id == kitchen.id;
-                           }),
-            _kitchenStatuses.end());
-      }
+      plazza::Packet pizzaPacket{};
+      pizzaPacket.type = plazza::MessageType::Pizza;
+      pizzaPacket.pizza = pack({.type = order.type, .size = order.size});
+      bestKitchen->orderQueue->send(pizzaPacket);
+      ++bestKitchen->load;
     }
   }
 }
 
-void LoadBalancer::updateKitchenStatus(int kitchenId,
-                                       const plazza::Packet& response) {
-  auto it = std::find_if(_kitchenStatuses.begin(), _kitchenStatuses.end(),
-                         [kitchenId](const auto& kitchenStatus) {
-                           return kitchenStatus.id == kitchenId;
-                         });
-  if (it == _kitchenStatuses.end()) {
-    return;
-  }
-  it->load = response.load;
-  it->capacity = response.capacity;
-  it->stock.clear();
-  for (size_t i = 0; i < 9; ++i) {
-    it->stock[static_cast<kitchen::Ingredient>(i)] =
-        response.stock.quantities[i];
-  }
-  it->cooks.clear();
-  for (size_t i = 0; i < response.nCooks; ++i) {
-    std::string pizzaName;
-    if (response.cooks[i].state ==
-        static_cast<uint8_t>(kitchen::CookState::COOKING)) {
-      pizzaName = PizzaFactory::create(
-                      static_cast<PizzaType>(response.cooks[i].pizzaType),
-                      static_cast<PizzaSize>(response.cooks[i].pizzaSize))
-                      .getName();
+void LoadBalancer::updateKitchens() {
+  for (auto& kitchen : kitchens_) {
+    if (!kitchen.alive) {
+      continue;
     }
-    it->cooks.push_back(
-        {.id = response.cooks[i].id,
-         .state = static_cast<kitchen::CookState>(response.cooks[i].state),
-         .currentPizza = std::move(pizzaName)});
+    plazza::Packet packet{};
+    while (kitchen.resultQueue->receive(packet)) {
+      switch (packet.type) {
+        case plazza::MessageType::Done:
+          if (kitchen.load > 0) {
+            --kitchen.load;
+          }
+          break;
+        case plazza::MessageType::CookStatus:
+          kitchen.pendingCooks.push_back(
+              {.id = packet.cook.id,
+               .state = static_cast<kitchen::CookState>(packet.cook.state),
+               .type = static_cast<PizzaType>(packet.cook.pizzaType),
+               .size = static_cast<PizzaSize>(packet.cook.pizzaSize)});
+          break;
+        case plazza::MessageType::StatusReply:
+          kitchen.load = packet.load;
+          kitchen.status.load = packet.load;
+          kitchen.status.capacity = packet.capacity;
+          kitchen.status.cooks = std::move(kitchen.pendingCooks);
+          kitchen.pendingCooks.clear();
+          for (std::size_t i = 0; i < 9; ++i) {
+            kitchen.status.stock[static_cast<kitchen::Ingredient>(i)] =
+                packet.stock.quantities[i];
+          }
+          break;
+        case plazza::MessageType::Shutdown:
+          kitchen.alive = false;
+          kitchen.process->wait();
+          break;
+        default:
+          break;
+      }
+    }
   }
-}
 
-void LoadBalancer::removeKitchen(int kitchenId) {
-  const std::lock_guard lock(_mutex);
-  const auto [first, last] = std::ranges::remove_if(
-      _kitchens,
-      [kitchenId](const auto& kitchen) { return kitchen.id == kitchenId; });
-  _kitchens.erase(first, last);
+  kitchens_.erase(std::remove_if(kitchens_.begin(), kitchens_.end(),
+                                 [](const KitchenHandle& kitchen) {
+                                   return !kitchen.alive;
+                                 }),
+                  kitchens_.end());
+
+  for (auto& kitchen : kitchens_) {
+    if (kitchen.alive) {
+      plazza::Packet statusRequest{};
+      statusRequest.type = plazza::MessageType::StatusRequest;
+      kitchen.orderQueue->send(statusRequest);
+    }
+  }
 }

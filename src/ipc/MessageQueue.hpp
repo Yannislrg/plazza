@@ -10,6 +10,8 @@
 #include <cstdint>
 #include <string>
 
+#include "ipc/PizzaSerializer.hpp"
+
 namespace plazza {
 
 enum class MessageType : uint8_t {
@@ -19,7 +21,8 @@ enum class MessageType : uint8_t {
   StatusReply = 4,
   Ready = 5,
   Shutdown = 6,
-  Full = 7
+  Full = 7,
+  CookStatus = 8
 };
 
 struct PackedCook {
@@ -36,13 +39,12 @@ struct PackedStock {
 struct Packet {
   MessageType type;
   uint8_t kitchenId;
-  uint8_t pizzaType;
-  uint8_t pizzaSize;
+  PackedPizza pizza;
   uint8_t load;
   uint8_t capacity;
   uint8_t nCooks;
   PackedStock stock;
-  PackedCook cooks[1024];
+  PackedCook cook;
 };
 
 }  // namespace plazza

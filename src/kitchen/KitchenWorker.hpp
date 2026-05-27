@@ -19,7 +19,8 @@ namespace kitchen {
 class KitchenWorker {
  public:
   KitchenWorker(std::size_t nCooks, std::size_t regenDelayMs,
-                MessageQueue& orderQueue, MessageQueue& resultQueue);
+                MessageQueue& orderQueue, MessageQueue& resultQueue,
+                double multiplier);
   ~KitchenWorker() = default;
 
   KitchenWorker(const KitchenWorker&) = delete;
