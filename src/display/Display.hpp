@@ -14,6 +14,6 @@
 namespace display {
 
 void printStatus(const std::vector<KitchenStatus>& statuses);
-void notifyPizzaDone(int kitchenId, PizzaType type, PizzaSize size);
+void notifyOrderReady(int orderId);
 
 }  // namespace display

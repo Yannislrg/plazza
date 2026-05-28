@@ -10,7 +10,6 @@
 #include <vector>
 #include "kitchen/IngredientStock/IngredientStock.hpp"
 #include "kitchen/cook/Cook.hpp"
-#include "pizza/factory/PizzaFactory.hpp"
 #include "reception/kitchenHandle/KitchenHandle.hpp"
 
 namespace display {
@@ -42,10 +41,8 @@ void printStatus(const std::vector<KitchenStatus>& statuses) {
   }
 }
 
-void notifyPizzaDone(int kitchenId, PizzaType type, PizzaSize size) {
-  const auto recipe = PizzaFactory::create(type, size);
-  std::cout << "\n[Kitchen #" << kitchenId << "] " << recipe.getName()
-            << " ready!\n> " << std::flush;
+void notifyOrderReady(int orderId) {
+  std::cout << "\nOrder #" << orderId << " ready!\n> " << std::flush;
 }
 
 }  // namespace display

@@ -28,6 +28,7 @@ class LoadBalancer {
   LoadBalancer& operator=(LoadBalancer&&) = delete;
 
   void dispatch(const std::vector<PizzaOrder>& orders);
+  void poll();
   [[nodiscard]] std::vector<KitchenStatus> getStatus();
   void setDoneCallback(std::function<void(int, PizzaType, PizzaSize)> callback);
 

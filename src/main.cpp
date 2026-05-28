@@ -6,7 +6,9 @@
 */
 
 #include <iostream>
+#include <queue>
 #include <string>
+#include <utility>
 #include <vector>
 #include "Pizza.hpp"
 #include "display/Display.hpp"
@@ -32,14 +34,36 @@ int main(int argc, char* argv[]) {
 
     PizzaFactory factory;
     LoadBalancer loadBalancer(factory, nCooks, regenMs, multiplier);
-    loadBalancer.setDoneCallback(display::notifyPizzaDone);
+
+    int nextOrderId = 0;
+    std::queue<std::pair<int, int>> pendingOrders;
+
+    loadBalancer.setDoneCallback(
+        [&](int /*kitchenId*/, PizzaType /*type*/, PizzaSize /*size*/) {
+          if (pendingOrders.empty()) {
+            return;
+          }
+          --pendingOrders.front().second;
+          if (pendingOrders.front().second == 0) {
+            display::notifyOrderReady(pendingOrders.front().first);
+            pendingOrders.pop();
+          }
+        });
 
     Shell shell;
-    shell.setOrderCallback([&loadBalancer](const std::vector<PizzaOrder>& orders) {
+    shell.setOrderCallback([&](const std::vector<PizzaOrder>& orders) {
+      int total = 0;
+      for (const auto& order : orders) {
+        total += static_cast<int>(order.quantity);
+      }
+      if (total > 0) {
+        pendingOrders.push({++nextOrderId, total});
+      }
       loadBalancer.dispatch(orders);
     });
     shell.setStatusCallback(
         [&loadBalancer]() { display::printStatus(loadBalancer.getStatus()); });
+    shell.setPollCallback([&loadBalancer]() { loadBalancer.poll(); });
 
     shell.run();
   } catch (const std::exception& exc) {
