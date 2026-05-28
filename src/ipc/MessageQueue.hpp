@@ -9,7 +9,6 @@
 
 #include <cstdint>
 #include <string>
-
 #include "ipc/PizzaSerializer.hpp"
 
 namespace plazza {
@@ -33,7 +32,7 @@ struct PackedCook {
 };
 
 struct PackedStock {
-  uint8_t quantities[9];
+  uint32_t quantities[9];
 };
 
 struct Packet {

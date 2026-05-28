@@ -86,8 +86,8 @@ void KitchenWorker::sendStatusResponse() const {
 
   const auto currentStock = stock_.stock();
   for (std::size_t i = 0; i < 9; ++i) {
-    reply.stock.quantities[i] = static_cast<uint8_t>(
-        currentStock.at(IngredientStock::kAllIngredients[i].value));
+    reply.stock.quantities[i] = static_cast<uint32_t>(
+      currentStock.at(IngredientStock::kAllIngredients[i].value));
   }
 
   const auto cookStatuses = pool_->getStatus();
