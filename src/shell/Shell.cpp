@@ -58,6 +58,9 @@ void Shell::handleLine(const std::string& line) {
                               trimmed.back() == '\t')) {
     trimmed.pop_back();
   }
+  if (trimmed.empty()) {
+    return;
+  }
   if (trimmed == "status") {
     if (statusCb_) {
       statusCb_();
