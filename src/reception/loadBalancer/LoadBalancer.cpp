@@ -56,7 +56,11 @@ LoadBalancer::LoadBalancer(PizzaFactory& factory, std::size_t nCooks,
     : factory_(factory)
     , nCooks_(nCooks)
     , regenMs_(regenMs)
-    , multiplier_(multiplier) {}
+    , multiplier_(multiplier) {
+  if (multiplier_ < 0.0 || multiplier_ > 1.0) {
+    throw std::invalid_argument("multiplier must be in [0, 1]");
+  }
+}
 
 LoadBalancer::~LoadBalancer() { shutdown(); }
 
@@ -89,8 +93,6 @@ void LoadBalancer::dispatch(const std::vector<PizzaOrder>& orders) {
     }
   }
 }
-
-void LoadBalancer::poll() { updateKitchens(); }
 
 std::vector<KitchenStatus> LoadBalancer::getStatus() {
   std::vector<int> pending;
