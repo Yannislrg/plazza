@@ -28,4 +28,4 @@ jobs:
       - name: Run binary under TSan
         env:
           TSAN_OPTIONS: halt_on_error=1
-        run: echo | ./plazza 0.5 2 500
+        run: ./plazza 0.5 2 500 < /dev/null
