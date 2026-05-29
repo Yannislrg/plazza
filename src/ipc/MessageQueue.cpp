@@ -28,7 +28,7 @@ constexpr int kQueuePermissions = 0600;
 }  // namespace
 
 void MessageQueue::createAnchorFile() const {
-  const std::unique_ptr<FILE, decltype(&std::fclose)> file(
+  const std::unique_ptr<FILE, int(*)(FILE*)> file(
       std::fopen(path_.c_str(), "ae"), std::fclose);
   if (!file) {
     throw plazza::exceptions::Exception(

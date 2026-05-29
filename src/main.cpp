@@ -43,8 +43,7 @@ int main(int argc, char* argv[]) {
           if (pendingOrders.empty()) {
             return;
           }
-          --pendingOrders.front().second;
-          if (pendingOrders.front().second == 0) {
+          if (--pendingOrders.front().second == 0) {
             display::notifyOrderReady(pendingOrders.front().first);
             pendingOrders.pop();
           }
@@ -63,6 +62,7 @@ int main(int argc, char* argv[]) {
     });
     shell.setStatusCallback(
         [&loadBalancer]() { display::printStatus(loadBalancer.getStatus()); });
+    shell.setPollCallback([&loadBalancer]() { loadBalancer.poll(); });
 
     shell.run();
   } catch (const std::exception& exc) {

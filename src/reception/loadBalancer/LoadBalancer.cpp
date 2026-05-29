@@ -94,6 +94,8 @@ void LoadBalancer::dispatch(const std::vector<PizzaOrder>& orders) {
   }
 }
 
+void LoadBalancer::poll() { updateKitchens(); }
+
 std::vector<KitchenStatus> LoadBalancer::getStatus() {
   std::vector<int> pending;
   for (auto& kitchen : kitchens_) {
