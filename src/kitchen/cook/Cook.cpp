@@ -7,7 +7,6 @@
 
 #include "Cook.hpp"
 #include <chrono>
-#include <mutex>
 #include <stdexcept>
 #include <thread>
 #include <unordered_map>
@@ -89,8 +88,7 @@ void Cook::cookPizza(const PizzaRecipe& pizza, IngredientStock& stock,
         static_cast<int>(pizza.cookingTime(multiplier_) * 1000)));
     plazza::Packet donePkt{
         .type = plazza::MessageType::Done,
-        .pizza = pack({.type = pizza.type(), .size = pizza.size()})
-    };
+        .pizza = pack({.type = pizza.type(), .size = pizza.size()})};
     messageQueue.send(donePkt);
   } catch (...) {
     std::lock_guard lock(mutex_);

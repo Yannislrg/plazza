@@ -27,8 +27,8 @@ int main(int argc, char* argv[]) {
     const std::size_t nCooks = std::stoull(argv[2]);
     const std::size_t regenMs = std::stoull(argv[3]);
 
-    if (multiplier <= 0 || multiplier > 1 || nCooks == 0 || regenMs == 0) {
-      std::cerr << "multiplier must be in ]0, 1], cooks and regenTime must be "
+    if (multiplier <= 0 || nCooks == 0 || regenMs == 0) {
+      std::cerr << "multiplier must be > 0, cooks and regenTime must be "
                    "strictly positive\n";
       return 84;
     }

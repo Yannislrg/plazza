@@ -38,14 +38,13 @@ void spawnKitchen(std::vector<KitchenHandle>& kitchens,
       std::make_unique<MessageQueue>(orderPath, MessageQueue::Mode::Create);
   handle.resultQueue =
       std::make_unique<MessageQueue>(resultPath, MessageQueue::Mode::Create);
-  handle.process = std::make_unique<Process>(
-      [orderPath, resultPath, nCooks, regenMs, multiplier]() {
-        MessageQueue orders(orderPath, MessageQueue::Mode::Open);
-        MessageQueue results(resultPath, MessageQueue::Mode::Open);
-        kitchen::KitchenWorker worker(nCooks, regenMs, multiplier, orders,
-                                     results);
-        worker.run();
-      });
+  handle.process = std::make_unique<Process>([orderPath, resultPath, nCooks,
+                                              regenMs, multiplier]() {
+    MessageQueue orders(orderPath, MessageQueue::Mode::Open);
+    MessageQueue results(resultPath, MessageQueue::Mode::Open);
+    kitchen::KitchenWorker worker(nCooks, regenMs, multiplier, orders, results);
+    worker.run();
+  });
   kitchens.push_back(std::move(handle));
 }
 
@@ -56,11 +55,7 @@ LoadBalancer::LoadBalancer(PizzaFactory& factory, std::size_t nCooks,
     : factory_(factory)
     , nCooks_(nCooks)
     , regenMs_(regenMs)
-    , multiplier_(multiplier) {
-  if (multiplier_ < 0.0 || multiplier_ > 1.0) {
-    throw std::invalid_argument("multiplier must be in [0, 1]");
-  }
-}
+    , multiplier_(multiplier) {}
 
 LoadBalancer::~LoadBalancer() { shutdown(); }
 
@@ -153,8 +148,8 @@ void LoadBalancer::handlePacket(KitchenHandle& kitchen,
         --kitchen.load;
       }
       const auto pizza = unpack(pkt.pizza);
-      logger_.logPizzaDone(kitchen.id,
-                           PizzaFactory::create(pizza.type, pizza.size).getName());
+      logger_.logPizzaDone(
+          kitchen.id, PizzaFactory::create(pizza.type, pizza.size).getName());
       if (doneCb_) {
         doneCb_(kitchen.id, pizza.type, pizza.size);
       }
