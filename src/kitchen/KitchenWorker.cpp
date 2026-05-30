@@ -71,8 +71,14 @@ void KitchenWorker::handlePacket(
   if (packet.type == plazza::MessageType::Pizza) {
     Pizza pizza = unpack(packet.pizza);
     PizzaRecipe recipe = PizzaFactory::create(pizza.type, pizza.size);
-    pool_->addPizza(std::move(recipe));
-    lastActiveTime = std::chrono::steady_clock::now();
+    if (!pool_->addPizza(std::move(recipe))) {
+      plazza::Packet fullPkt{};
+      fullPkt.type = plazza::MessageType::Full;
+      fullPkt.pizza = packet.pizza;
+      resultQueue_.send(fullPkt);
+    } else {
+      lastActiveTime = std::chrono::steady_clock::now();
+    }
   } else if (packet.type == plazza::MessageType::StatusRequest) {
     sendStatusResponse();
   }

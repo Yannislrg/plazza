@@ -48,7 +48,7 @@ class IngredientStock {
       {.name = "steak", .value = Ingredient::Steak},
       {.name = "eggplant", .value = Ingredient::Eggplant},
       {.name = "goat cheese", .value = Ingredient::GoatCheese},
-      {.name = "chef love", .value = Ingredient::ChiefLove},
+      {.name = "chief love", .value = Ingredient::ChiefLove},
   }};
 
   explicit IngredientStock(std::size_t regenDelayMs,

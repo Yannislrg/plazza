@@ -19,12 +19,15 @@
 namespace {
 
 void installDoneCallback(LoadBalancer& loadBalancer,
-                         std::queue<std::pair<int, int>>& pendingOrders) {
+                         std::queue<std::pair<int, int>>& pendingOrders,
+                         PizzaFactory& factory) {
   loadBalancer.setDoneCallback(
-      [&](int /*kitchenId*/, PizzaType /*type*/, PizzaSize /*size*/) {
+      [&](int /*kitchenId*/, PizzaType type, PizzaSize size) {
         if (pendingOrders.empty()) {
           return;
         }
+        auto recipe = factory.create(type, size);
+        display::Display::notifyPizzaReady(recipe.getName());
         if (--pendingOrders.front().second == 0) {
           display::Display::notifyOrderReady(pendingOrders.front().first);
           pendingOrders.pop();
@@ -76,7 +79,7 @@ int main(int argc, char* argv[]) {
     int nextOrderId = 0;
     std::queue<std::pair<int, int>> pendingOrders;
 
-    installDoneCallback(loadBalancer, pendingOrders);
+    installDoneCallback(loadBalancer, pendingOrders, factory);
 
     Shell shell;
     configureShellCallbacks(shell, loadBalancer, pendingOrders, nextOrderId);

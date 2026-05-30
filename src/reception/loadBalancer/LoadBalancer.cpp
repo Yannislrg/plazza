@@ -132,6 +132,11 @@ void handleShutdownPacket(KitchenHandle& kitchen) {
   kitchen.alive = false;
   kitchen.process->wait();
 }
+void handleFullPacket(KitchenHandle& kitchen) {
+  if (kitchen.load > 0) {
+    --kitchen.load;
+  }
+}
 }  // namespace
 
 LoadBalancer::LoadBalancer(PizzaFactory& factory, std::size_t nCooks,
@@ -218,6 +223,9 @@ void LoadBalancer::handlePacket(KitchenHandle& kitchen,
       break;
     case plazza::MessageType::Shutdown:
       handleShutdownPacket(kitchen);
+      break;
+    case plazza::MessageType::Full:
+      handleFullPacket(kitchen);
       break;
     default:
       break;
