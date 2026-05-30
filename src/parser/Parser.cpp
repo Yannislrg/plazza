@@ -14,7 +14,7 @@
 #include <vector>
 #include "Pizza.hpp"
 #include "exceptions/Exception.hpp"
-#include "utils/Constant.hpp"
+#include "utils/ErrorMessage.hpp"
 
 namespace {
 std::string toLower(const std::string& str) {

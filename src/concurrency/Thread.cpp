@@ -14,7 +14,7 @@
 #include <string>
 #include <utility>
 #include "exceptions/Exception.hpp"
-#include "utils/Constant.hpp"
+#include "utils/ErrorMessage.hpp"
 
 Thread::Thread(std::function<void()> routine) {
   auto* const callbackArg =  // NOLINT(cppcoreguidelines-owning-memory)

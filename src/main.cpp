@@ -16,6 +16,43 @@
 #include "reception/loadBalancer/LoadBalancer.hpp"
 #include "shell/Shell.hpp"
 
+namespace {
+
+void installDoneCallback(LoadBalancer& loadBalancer,
+                         std::queue<std::pair<int, int>>& pendingOrders) {
+  loadBalancer.setDoneCallback(
+      [&](int /*kitchenId*/, PizzaType /*type*/, PizzaSize /*size*/) {
+        if (pendingOrders.empty()) {
+          return;
+        }
+        if (--pendingOrders.front().second == 0) {
+          display::Display::notifyOrderReady(pendingOrders.front().first);
+          pendingOrders.pop();
+        }
+      });
+}
+
+void configureShellCallbacks(Shell& shell, LoadBalancer& loadBalancer,
+                             std::queue<std::pair<int, int>>& pendingOrders,
+                             int& nextOrderId) {
+  shell.setOrderCallback([&](const std::vector<PizzaOrder>& orders) {
+    int total = 0;
+    for (const auto& order : orders) {
+      total += static_cast<int>(order.quantity);
+    }
+    if (total > 0) {
+      pendingOrders.emplace(++nextOrderId, total);
+    }
+    loadBalancer.dispatch(orders);
+  });
+  shell.setStatusCallback([&loadBalancer]() {
+    display::Display::printStatus(loadBalancer.getStatus());
+  });
+  shell.setPollCallback([&loadBalancer]() { loadBalancer.updateKitchens(); });
+}
+
+}  // namespace
+
 int main(int argc, char* argv[]) {
   if (argc != 4) {
     std::cerr << "Usage: " << argv[0]
@@ -39,32 +76,10 @@ int main(int argc, char* argv[]) {
     int nextOrderId = 0;
     std::queue<std::pair<int, int>> pendingOrders;
 
-    loadBalancer.setDoneCallback(
-        [&](int /*kitchenId*/, PizzaType /*type*/, PizzaSize /*size*/) {
-          if (pendingOrders.empty()) {
-            return;
-          }
-          if (--pendingOrders.front().second == 0) {
-            display::Display::notifyOrderReady(pendingOrders.front().first);
-            pendingOrders.pop();
-          }
-        });
+    installDoneCallback(loadBalancer, pendingOrders);
 
     Shell shell;
-    shell.setOrderCallback([&](const std::vector<PizzaOrder>& orders) {
-      int total = 0;
-      for (const auto& order : orders) {
-        total += static_cast<int>(order.quantity);
-      }
-      if (total > 0) {
-        pendingOrders.push({++nextOrderId, total});
-      }
-      loadBalancer.dispatch(orders);
-    });
-    shell.setStatusCallback([&loadBalancer]() {
-      display::Display::printStatus(loadBalancer.getStatus());
-    });
-    shell.setPollCallback([&loadBalancer]() { loadBalancer.poll(); });
+    configureShellCallbacks(shell, loadBalancer, pendingOrders, nextOrderId);
 
     shell.run();
   } catch (const std::exception& exc) {

@@ -11,7 +11,7 @@
 #include <functional>
 #include <string>
 #include "exceptions/Exception.hpp"
-#include "utils/Constant.hpp"
+#include "utils/ErrorMessage.hpp"
 
 Process::Process(const std::function<void()>& routine) {
   const pid_t forkedPid = fork();  // NOLINT(misc-include-cleaner)

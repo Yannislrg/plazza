@@ -16,8 +16,8 @@
 namespace {
 
 std::string timestamp() {
-  const auto now = std::chrono::system_clock::to_time_t(
-      std::chrono::system_clock::now());
+  const auto now =
+      std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
   // NOLINTNEXTLINE(concurrency-mt-unsafe)
   const auto* localTm = std::localtime(&now);
   std::ostringstream oss;
@@ -31,7 +31,7 @@ Logger::Logger(const std::string& filename)
     : file_(filename, std::ios::app) {}
 
 void Logger::logPizzaDone(int kitchenId, const std::string& pizzaName) {
-  std::lock_guard lock(mutex_);
+  std::lock_guard<Mutex> lock(mutex_);
   file_ << "[" << timestamp() << "] Kitchen #" << kitchenId << " - "
         << pizzaName << " done\n";
   file_.flush();

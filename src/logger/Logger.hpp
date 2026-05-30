@@ -8,8 +8,8 @@
 #pragma once
 
 #include <fstream>
-#include <mutex>
 #include <string>
+#include "concurrency/Mutex.hpp"
 
 class Logger {
  public:
@@ -25,5 +25,5 @@ class Logger {
 
  private:
   std::ofstream file_;
-  std::mutex mutex_;
+  Mutex mutex_;
 };

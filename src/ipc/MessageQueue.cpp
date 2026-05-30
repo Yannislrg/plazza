@@ -15,7 +15,7 @@
 #include <string>
 #include <utility>
 #include "exceptions/Exception.hpp"
-#include "utils/Constant.hpp"
+#include "utils/ErrorMessage.hpp"
 
 namespace {
 struct SysVMessage {
@@ -28,7 +28,7 @@ constexpr int kQueuePermissions = 0600;
 }  // namespace
 
 void MessageQueue::createAnchorFile() const {
-  const std::unique_ptr<FILE, int(*)(FILE*)> file(
+  const std::unique_ptr<FILE, int (*)(FILE*)> file(
       std::fopen(path_.c_str(), "ae"), std::fclose);
   if (!file) {
     throw plazza::exceptions::Exception(
@@ -116,7 +116,8 @@ void MessageQueue::send(const plazza::Packet& packet) {
 bool MessageQueue::receive(plazza::Packet& packet, bool blocking) const {
   SysVMessage msg{};
   const int flags = blocking ? 0 : IPC_NOWAIT;
-  const ssize_t received = msgrcv(queueId_, &msg, sizeof(plazza::Packet), 0, flags);
+  const ssize_t received =
+      msgrcv(queueId_, &msg, sizeof(plazza::Packet), 0, flags);
 
   if (received == -1) {
     if (errno == ENOMSG || errno == EAGAIN) {

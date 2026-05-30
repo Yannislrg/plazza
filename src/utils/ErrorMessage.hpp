@@ -2,7 +2,7 @@
 ** EPITECH PROJECT, 2026
 ** plazza
 ** File description:
-** Constants for error messages
+** Error messages
 */
 
 #pragma once
