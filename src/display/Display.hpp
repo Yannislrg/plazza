@@ -8,12 +8,14 @@
 #pragma once
 
 #include <vector>
-#include "Pizza.hpp"
 #include "reception/kitchenHandle/KitchenHandle.hpp"
 
 namespace display {
 
-void printStatus(const std::vector<KitchenStatus>& statuses);
-void notifyOrderReady(int orderId);
+class Display {
+ public:
+  static void printStatus(const std::vector<KitchenStatus>& statuses);
+  static void notifyOrderReady(int orderId);
+};
 
 }  // namespace display

@@ -14,7 +14,7 @@
 
 namespace display {
 
-void printStatus(const std::vector<KitchenStatus>& statuses) {
+void Display::printStatus(const std::vector<KitchenStatus>& statuses) {
   if (statuses.empty()) {
     std::cout << "No active kitchen.\n";
     return;
@@ -41,7 +41,7 @@ void printStatus(const std::vector<KitchenStatus>& statuses) {
   }
 }
 
-void notifyOrderReady(int orderId) {
+void Display::notifyOrderReady(int orderId) {
   std::cout << "\nOrder #" << orderId << " ready!\n> " << std::flush;
 }
 

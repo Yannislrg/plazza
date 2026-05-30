@@ -28,7 +28,8 @@ int main(int argc, char* argv[]) {
     const std::size_t regenMs = std::stoull(argv[3]);
 
     if (multiplier <= 0 || multiplier > 1 || nCooks == 0 || regenMs == 0) {
-      std::cerr << "multiplier must be in ]0, 1], cooks and regenTime must be strictly positive\n";
+      std::cerr << "multiplier must be in ]0, 1], cooks and regenTime must be "
+                   "strictly positive\n";
       return 84;
     }
 
@@ -44,7 +45,7 @@ int main(int argc, char* argv[]) {
             return;
           }
           if (--pendingOrders.front().second == 0) {
-            display::notifyOrderReady(pendingOrders.front().first);
+            display::Display::notifyOrderReady(pendingOrders.front().first);
             pendingOrders.pop();
           }
         });
@@ -60,8 +61,9 @@ int main(int argc, char* argv[]) {
       }
       loadBalancer.dispatch(orders);
     });
-    shell.setStatusCallback(
-        [&loadBalancer]() { display::printStatus(loadBalancer.getStatus()); });
+    shell.setStatusCallback([&loadBalancer]() {
+      display::Display::printStatus(loadBalancer.getStatus());
+    });
     shell.setPollCallback([&loadBalancer]() { loadBalancer.poll(); });
 
     shell.run();
