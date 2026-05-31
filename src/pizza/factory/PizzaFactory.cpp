@@ -38,7 +38,7 @@ void registerBuiltinPizzas() {
   PizzaFactory::registerPizza(
       PizzaType::Fantasia,
       PizzaRecipe(PizzaType::Fantasia, PizzaSize::M,
-                  {"dough", "tomato", "eggplant", "goat cheese", "chef love"},
+                  {"dough", "tomato", "eggplant", "goat cheese", "chief love"},
                   4));
 }
 }  // namespace

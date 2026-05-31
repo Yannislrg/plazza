@@ -25,9 +25,8 @@ constexpr std::chrono::milliseconds kPollInterval{50};
 }  // namespace
 
 KitchenWorker::KitchenWorker(std::size_t nCooks, std::size_t regenDelayMs,
-                             MessageQueue& orderQueue,
-                             MessageQueue& resultQueue,
-                             double multiplier)
+                             double multiplier, MessageQueue& orderQueue,
+                             MessageQueue& resultQueue)
     : stock_(regenDelayMs)
     , pool_(std::make_unique<ThreadPool>(nCooks, multiplier))
     , orderQueue_(orderQueue)
@@ -72,8 +71,14 @@ void KitchenWorker::handlePacket(
   if (packet.type == plazza::MessageType::Pizza) {
     Pizza pizza = unpack(packet.pizza);
     PizzaRecipe recipe = PizzaFactory::create(pizza.type, pizza.size);
-    pool_->addPizza(std::move(recipe));
-    lastActiveTime = std::chrono::steady_clock::now();
+    if (!pool_->addPizza(std::move(recipe))) {
+      plazza::Packet fullPkt{};
+      fullPkt.type = plazza::MessageType::Full;
+      fullPkt.pizza = packet.pizza;
+      resultQueue_.send(fullPkt);
+    } else {
+      lastActiveTime = std::chrono::steady_clock::now();
+    }
   } else if (packet.type == plazza::MessageType::StatusRequest) {
     sendStatusResponse();
   }
@@ -87,8 +92,8 @@ void KitchenWorker::sendStatusResponse() const {
 
   const auto currentStock = stock_.stock();
   for (std::size_t i = 0; i < 9; ++i) {
-    reply.stock.quantities[i] = static_cast<uint8_t>(
-        currentStock.at(IngredientStock::kAllIngredients[i].value));
+    reply.stock.quantities[i] = static_cast<uint32_t>(
+      currentStock.at(IngredientStock::kAllIngredients[i].value));
   }
 
   const auto cookStatuses = pool_->getStatus();

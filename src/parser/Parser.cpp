@@ -14,7 +14,7 @@
 #include <vector>
 #include "Pizza.hpp"
 #include "exceptions/Exception.hpp"
-#include "utils/Constant.hpp"
+#include "utils/ErrorMessage.hpp"
 
 namespace {
 std::string toLower(const std::string& str) {
@@ -53,7 +53,7 @@ std::vector<PizzaOrder> Parser::parse(const std::string& line) {
 
 PizzaOrder Parser::parseLine(const std::string& line) {
   static const std::regex pattern(
-      R"(^\s*([A-Za-z]+)\s*(S|M|L|XL|XXL)\s*(x[1-9][0-9]*)\s*$)",
+      R"(^\s*([A-Za-z]+?)\s*(XXL|XL|S|M|L)\s*(x[1-9][0-9]*)\s*$)",
       std::regex::icase);
   std::smatch match;
   if (!std::regex_match(line, match, pattern)) {

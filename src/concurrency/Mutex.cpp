@@ -6,11 +6,11 @@
 */
 
 #include "concurrency/Mutex.hpp"
-#include <cerrno>
 #include <pthread.h>
+#include <cerrno>
 #include <string>
 #include "exceptions/Exception.hpp"
-#include "utils/Constant.hpp"
+#include "utils/ErrorMessage.hpp"
 
 Mutex::Mutex() {
   if (pthread_mutex_init(&mutex_, nullptr) != 0) {

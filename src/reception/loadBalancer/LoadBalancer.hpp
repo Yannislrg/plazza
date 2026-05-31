@@ -9,11 +9,10 @@
 
 #include <atomic>
 #include <cstddef>
+#include <functional>
 #include <vector>
 #include "Pizza.hpp"
-#include "concurrency/ConditionVariable.hpp"
-#include "concurrency/Mutex.hpp"
-#include "concurrency/Thread.hpp"
+#include "logger/Logger.hpp"
 #include "pizza/factory/PizzaFactory.hpp"
 #include "reception/kitchenHandle/KitchenHandle.hpp"
 
@@ -29,16 +28,20 @@ class LoadBalancer {
   LoadBalancer& operator=(LoadBalancer&&) = delete;
 
   void dispatch(const std::vector<PizzaOrder>& orders);
-  [[nodiscard]] std::vector<KitchenStatus> getStatus();
-  void shutdown();
   void updateKitchens();
+  [[nodiscard]] std::vector<KitchenStatus> getStatus();
+  void setDoneCallback(std::function<void(int, PizzaType, PizzaSize)> callback);
 
  private:
   void handlePacket(KitchenHandle& kitchen, const plazza::Packet& packet);
+  void shutdown();
+
   PizzaFactory& factory_;
-  std::vector<KitchenHandle> kitchens_;
-  std::atomic<int> nextKitchenId_;
   std::size_t nCooks_;
   std::size_t regenMs_;
   double multiplier_;
+  std::atomic<int> nextKitchenId_{0};
+  std::vector<KitchenHandle> kitchens_;
+  std::function<void(int, PizzaType, PizzaSize)> doneCb_;
+  Logger logger_;
 };

@@ -18,13 +18,16 @@ class Shell {
   void run();
   void stop();
 
-  void setOrderCallback(std::function<void(std::vector<PizzaOrder>)> callback);
+  void setOrderCallback(
+      std::function<void(const std::vector<PizzaOrder>&)> callback);
   void setStatusCallback(std::function<void()> callback);
+  void setPollCallback(std::function<void()> callback);
 
  private:
   bool running_;
-  std::function<void(std::vector<PizzaOrder>)> orderCb_;
+  std::function<void(const std::vector<PizzaOrder>&)> orderCb_;
   std::function<void()> statusCb_;
+  std::function<void()> pollCb_;
 
   void handleLine(const std::string& line);
   static void printPrompt();

@@ -10,7 +10,7 @@
 #include <string>
 #include "concurrency/Mutex.hpp"
 #include "exceptions/Exception.hpp"
-#include "utils/Constant.hpp"
+#include "utils/ErrorMessage.hpp"
 
 ConditionVariable::ConditionVariable() {
   if (pthread_cond_init(&cond_, nullptr) != 0) {
