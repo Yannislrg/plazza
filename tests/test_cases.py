@@ -9,12 +9,12 @@ TEST_DATA = [
     {
         "name": "Classic Case",
         "command": "margarita S x1",
-        "expected": ["[Ready] Margarita", "Order #1 completely ready!"]
+        "expected": ["Order #1 completely ready!"]
     },
     {
         "name": "No Spaces Case",
         "command": "reginaXXLx1",
-        "expected": ["[Ready] Regina"]
+        "expected": ["Order #1 completely ready!"]
     },
     {
         "name": "Status Basic",
@@ -29,7 +29,7 @@ TEST_DATA = [
         "name": "Kitchen Timeout (5s)",
         "config": (0.1, 1, 1000),
         "steps": [
-            {"send": "margarita S x1", "expect": ["[Ready] Margarita"]},
+            {"send": "margarita S x1", "expect": ["Order #1 completely ready!"]},
             {"send": "status", "expect": ["Kitchen #0"]},
             {"sleep": 7, "expect": []},
             {"send": "status", "expect": ["No active kitchen."]}
@@ -69,8 +69,6 @@ TEST_DATA = [
         "config": (0.01, 5, 1000),
         "command": "margarita S x2; regina M x2; americana L x2; fantasia XXL x2",
         "expected": [
-            "[Ready] Margarita", "[Ready] Regina",
-            "[Ready] Americana", "[Ready] Fantasia",
             "Order #1 completely ready!"
         ]
     }

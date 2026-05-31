@@ -41,10 +41,6 @@ void Display::printStatus(const std::vector<KitchenStatus>& statuses) {
   }
 }
 
-void Display::notifyPizzaReady(const std::string& pizzaName) {
-  std::cout << "\n[Ready] " << pizzaName << "\n> " << std::flush;
-}
-
 void Display::notifyOrderReady(int orderId) {
   std::cout << "\nOrder #" << orderId << " completely ready!\n> " << std::flush;
 }
